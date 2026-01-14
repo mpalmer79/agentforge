@@ -4,10 +4,8 @@ import type {
   CompletionResponse,
   StreamChunk,
   Message,
-  ToolSchema,
 } from '../types';
 import { BaseProvider } from './base';
-import { generateId } from '../utils';
 
 interface OpenAIMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
