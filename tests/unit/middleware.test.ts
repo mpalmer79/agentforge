@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   createMiddleware,
   composeMiddleware,
@@ -203,6 +203,10 @@ describe('middleware', () => {
       vi.useFakeTimers();
     });
 
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it('should allow requests under the limit', async () => {
       const middleware = createRateLimitMiddleware({
         maxRequestsPerMinute: 5,
@@ -334,6 +338,14 @@ describe('middleware', () => {
   });
 
   describe('createRetryMiddleware', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it('should set retry metadata on retryable error', async () => {
       const middleware = createRetryMiddleware({
         maxRetries: 3,
@@ -344,10 +356,15 @@ describe('middleware', () => {
       const context = createMockContext();
       const error = new Error('rate limit exceeded');
 
+      const errorPromise = composed.runOnError(error, context);
+
+      // Advance timers to complete the delay
+      await vi.advanceTimersByTimeAsync(100);
+
       try {
-        await composed.runOnError(error, context);
+        await errorPromise;
       } catch {
-        // Expected to re-throw after setting metadata
+        // Expected - will throw after retries exhausted or on non-retry
       }
 
       expect(context.metadata.__retryCount).toBe(1);
