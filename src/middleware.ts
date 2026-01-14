@@ -96,7 +96,7 @@ export const loggingMiddleware = createMiddleware({
     });
     return context;
   },
-  afterResponse: async (response, context) => {
+  afterResponse: async (response, _context) => {
     console.log('[AgentForge] Response:', {
       id: response.id,
       contentLength: response.content.length,
