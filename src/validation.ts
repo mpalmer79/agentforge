@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ValidationError, ConfigurationError } from './errors';
-import type { AgentConfig, ProviderConfig, MemoryConfig, Message } from './types';
+import type { ProviderConfig, MemoryConfig, Message } from './types';
 
 // ============================================
 // Zod Schemas for Configuration
