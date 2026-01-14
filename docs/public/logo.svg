@@ -1,40 +1,78 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
   <defs>
     <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#6366f1"/>
-      <stop offset="50%" style="stop-color:#8b5cf6"/>
-      <stop offset="100%" style="stop-color:#a855f7"/>
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="50%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#a855f7"/>
     </linearGradient>
+
     <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#f59e0b"/>
-      <stop offset="100%" style="stop-color:#f97316"/>
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#f97316"/>
     </linearGradient>
   </defs>
-  
-  <!-- Background circle -->
+
+  <!-- Solid fallback background (Safari / pinned tabs safety) -->
+  <circle cx="60" cy="60" r="56" fill="#6366f1"/>
+
+  <!-- Gradient brand ring -->
   <circle cx="60" cy="60" r="56" fill="url(#brandGradient)"/>
-  
-  <!-- Inner dark circle -->
-  <circle cx="60" cy="60" r="48" fill="#0f0f1a" opacity="0.9"/>
-  
-  <!-- Anvil shape (forge) -->
-  <path d="M35 70 L45 55 L75 55 L85 70 L80 72 L40 72 Z" fill="url(#brandGradient)"/>
-  
-  <!-- Hammer (tool/agent) -->
-  <rect x="55" y="32" width="10" height="28" rx="2" fill="url(#accentGradient)"/>
-  <rect x="48" y="28" width="24" height="10" rx="3" fill="url(#accentGradient)"/>
-  
-  <!-- Spark particles -->
+
+  <!-- Inner dark surface -->
+  <circle cx="60" cy="60" r="48" fill="#0f0f1a"/>
+
+  <!-- Anvil (forge) -->
+  <path
+    d="M35 70 L45 55 L75 55 L85 70 L80 72 L40 72 Z"
+    fill="url(#brandGradient)"
+  />
+
+  <!-- Hammer handle -->
+  <rect
+    x="55"
+    y="32"
+    width="10"
+    height="28"
+    rx="2"
+    fill="url(#accentGradient)"
+  />
+
+  <!-- Hammer head -->
+  <rect
+    x="48"
+    y="28"
+    width="24"
+    height="10"
+    rx="3"
+    fill="url(#accentGradient)"
+  />
+
+  <!-- Sparks -->
   <circle cx="42" cy="48" r="2" fill="#f59e0b" opacity="0.9"/>
   <circle cx="78" cy="45" r="1.5" fill="#f59e0b" opacity="0.7"/>
   <circle cx="50" cy="42" r="1" fill="#f59e0b" opacity="0.6"/>
   <circle cx="72" cy="50" r="1.5" fill="#f59e0b" opacity="0.8"/>
   <circle cx="38" cy="55" r="1" fill="#f59e0b" opacity="0.5"/>
-  
-  <!-- Circuit/AI lines -->
-  <path d="M30 80 L30 85 L50 85" stroke="#6366f1" stroke-width="2" fill="none" opacity="0.6"/>
-  <path d="M90 80 L90 85 L70 85" stroke="#6366f1" stroke-width="2" fill="none" opacity="0.6"/>
+
+  <!-- Circuit / AI lines -->
+  <path
+    d="M30 80 L30 85 L50 85"
+    stroke="#6366f1"
+    stroke-width="2"
+    opacity="0.6"
+  />
+  <path
+    d="M90 80 L90 85 L70 85"
+    stroke="#6366f1"
+    stroke-width="2"
+    opacity="0.6"
+  />
   <circle cx="50" cy="85" r="2" fill="#6366f1" opacity="0.8"/>
   <circle cx="70" cy="85" r="2" fill="#6366f1" opacity="0.8"/>
-  <path d="M52 85 L68 85" stroke="#6366f1" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <path
+    d="M52 85 L68 85"
+    stroke="#6366f1"
+    stroke-width="1.5"
+    opacity="0.4"
+  />
 </svg>
