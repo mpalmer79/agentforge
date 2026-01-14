@@ -11,14 +11,17 @@ export default defineConfig({
     // Favicons / icons (base-relative paths; VitePress prefixes with base automatically)
     ['link', { rel: 'icon', href: '/favicon.ico' }],
     ['link', { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/icon-32.png' }],
+    ['link', { rel: 'icon', type: 'image/png', sizes: '152x152', href: '/icon-152.png' }],
     ['link', { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }],
     ['link', { rel: 'icon', type: 'image/png', sizes: '192x192', href: '/icon-192.png' }],
 
-    // Safari pinned tab (mask icon)
+    // Safari pinned tab
     ['link', { rel: 'mask-icon', href: '/mask-icon.svg', color: '#6366f1' }],
 
-    // Theme + social
+    // Theme
     ['meta', { name: 'theme-color', content: '#6366f1' }],
+
+    // Open Graph
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: 'AgentForge - TypeScript AI Agent Framework' }],
     [
@@ -29,11 +32,11 @@ export default defineConfig({
           'Build production-ready AI agents with type-safe tools, streaming responses, and multi-provider support'
       }
     ],
+    ['meta', { property: 'og:image', content: '/og.png' }],
 
-    // Optional (enable once you add docs/public/og.png)
-    // ['meta', { property: 'og:image', content: '/og.png' }],
-    // ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-    // ['meta', { name: 'twitter:image', content: '/og.png' }],
+    // Twitter / X
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:image', content: '/og.png' }]
   ],
 
   themeConfig: {
