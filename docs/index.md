@@ -22,11 +22,9 @@ hero:
 features:
   - title: Type-Safe Tools
     details: Define tools with Zod schemas for full TypeScript inference. Parameters are validated at runtime and compile time.
-  - icon: ⚡
-    title: Streaming Built-In
+  - title: Streaming Built-In
     details: Real-time token streaming with async iterators. Build responsive UIs that show content as it generates.
-  - icon: 🔌
-    title: Multi-Provider
+  - title: Multi-Provider
     details: Seamlessly switch between OpenAI, Anthropic, or build custom providers. Same API, any LLM.
   - icon: 🔗
     title: Middleware Pipeline
@@ -64,10 +62,12 @@ features:
   vertical-align: middle;
 }
 
-/* Type-Safe Tools Card - Background Image */
-.VPFeatures .VPFeature:first-child,
-.VPFeatures .items .item:first-child .VPFeature,
-.VPFeatures .grid .item:first-child .VPFeature {
+/* ============================================
+   FEATURE CARD BACKGROUNDS
+   ============================================ */
+
+/* Card 1: Type-Safe Tools - /type.png */
+.VPFeatures .items .item:nth-child(1) .VPFeature {
   background-image: url('/type.png') !important;
   background-size: cover !important;
   background-position: center !important;
@@ -76,9 +76,7 @@ features:
   overflow: hidden;
 }
 
-.VPFeatures .VPFeature:first-child::before,
-.VPFeatures .items .item:first-child .VPFeature::before,
-.VPFeatures .grid .item:first-child .VPFeature::before {
+.VPFeatures .items .item:nth-child(1) .VPFeature::before {
   content: '';
   position: absolute;
   top: 0;
@@ -90,27 +88,101 @@ features:
   pointer-events: none;
 }
 
-.VPFeatures .VPFeature:first-child .title,
-.VPFeatures .VPFeature:first-child .details,
-.VPFeatures .items .item:first-child .title,
-.VPFeatures .items .item:first-child .details {
+.VPFeatures .items .item:nth-child(1) .VPFeature .title,
+.VPFeatures .items .item:nth-child(1) .VPFeature .details {
   position: relative;
   z-index: 1;
   color: white !important;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
-/* Hide icon on first card */
-.VPFeatures .VPFeature:first-child .icon,
-.VPFeatures .VPFeature:first-child .VPImage,
-.VPFeatures .items .item:first-child .icon,
-.VPFeatures .items .item:first-child .VPImage,
-.VPFeatures .VPFeature:first-child .box > .icon,
-.VPFeatures .items .item:first-child .box > .icon {
+.VPFeatures .items .item:nth-child(1) .VPFeature .icon,
+.VPFeatures .items .item:nth-child(1) .VPFeature .VPImage,
+.VPFeatures .items .item:nth-child(1) .VPFeature .box > .icon {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
 }
+
+/* Card 2: Streaming Built-In - /streaming.png */
+.VPFeatures .items .item:nth-child(2) .VPFeature {
+  background-image: url('/streaming.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.VPFeatures .items .item:nth-child(2) .VPFeature::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.VPFeatures .items .item:nth-child(2) .VPFeature .title,
+.VPFeatures .items .item:nth-child(2) .VPFeature .details {
+  position: relative;
+  z-index: 1;
+  color: white !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.VPFeatures .items .item:nth-child(2) .VPFeature .icon,
+.VPFeatures .items .item:nth-child(2) .VPFeature .VPImage,
+.VPFeatures .items .item:nth-child(2) .VPFeature .box > .icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Card 3: Multi-Provider - /multi-provider.png */
+.VPFeatures .items .item:nth-child(3) .VPFeature {
+  background-image: url('/multi-provider.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.VPFeatures .items .item:nth-child(3) .VPFeature::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.VPFeatures .items .item:nth-child(3) .VPFeature .title,
+.VPFeatures .items .item:nth-child(3) .VPFeature .details {
+  position: relative;
+  z-index: 1;
+  color: white !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.VPFeatures .items .item:nth-child(3) .VPFeature .icon,
+.VPFeatures .items .item:nth-child(3) .VPFeature .VPImage,
+.VPFeatures .items .item:nth-child(3) .VPFeature .box > .icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* ============================================
+   PAGE LAYOUT
+   ============================================ */
 
 .home-content {
   max-width: 1152px;
