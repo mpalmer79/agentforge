@@ -51,6 +51,13 @@ export interface PluginLogger {
 }
 
 /**
+ * Plugin event handlers type
+ */
+export type PluginEventHandlers = {
+  [E in EventName]?: EventListener<E>;
+};
+
+/**
  * Plugin definition
  */
 export interface Plugin {
@@ -70,9 +77,7 @@ export interface Plugin {
   middleware?: Middleware[];
 
   /** Event subscriptions */
-  events?: {
-    [E in EventName]?: EventListener<E>;
-  };
+  events?: PluginEventHandlers;
 }
 
 // ============================================
@@ -96,6 +101,7 @@ export interface Plugin {
 export class PluginManager {
   private plugins: Map<string, Plugin> = new Map();
   private contexts: Map<string, PluginContext> = new Map();
+  private eventCleanups: Map<string, Array<() => void>> = new Map();
   private agent: Agent;
   private events: EventEmitter;
 
@@ -139,14 +145,18 @@ export class PluginManager {
       }
     }
 
-    // Subscribe to events
+    // Subscribe to events and track cleanup functions
+    const cleanups: Array<() => void> = [];
     if (plugin.events) {
-      for (const [eventName, listener] of Object.entries(plugin.events)) {
+      const eventEntries = Object.entries(plugin.events) as Array<[EventName, EventListener<EventName>]>;
+      for (const [eventName, listener] of eventEntries) {
         if (listener) {
-          this.events.on(eventName as EventName, listener);
+          const unsubscribe = this.events.on(eventName, listener);
+          cleanups.push(unsubscribe);
         }
       }
     }
+    this.eventCleanups.set(name, cleanups);
 
     // Call onRegister hook
     if (plugin.onRegister) {
@@ -183,14 +193,12 @@ export class PluginManager {
       await plugin.onUnregister(context);
     }
 
-    // Unsubscribe from events
-    if (plugin.events) {
-      for (const [eventName, listener] of Object.entries(plugin.events)) {
-        if (listener) {
-          this.events.off(eventName as EventName, listener);
-        }
-      }
+    // Unsubscribe from events using stored cleanup functions
+    const cleanups = this.eventCleanups.get(name) ?? [];
+    for (const cleanup of cleanups) {
+      cleanup();
     }
+    this.eventCleanups.delete(name);
 
     // Remove tools
     if (plugin.tools) {
@@ -285,7 +293,6 @@ export const analyticsPlugin = definePlugin({
 
   events: {
     'request:end': ({ durationMs }) => {
-      // In real implementation, update metrics
       console.log(`[Analytics] Request completed in ${durationMs}ms`);
     },
 
