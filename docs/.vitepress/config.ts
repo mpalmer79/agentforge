@@ -50,7 +50,7 @@ export default defineConfig({
       { text: 'Examples', link: '/examples/customer-support' },
       { text: 'Playground', link: '/playground' },
       {
-        text: 'v0.1.0',
+        text: 'v1.0.0',
         items: [
           { text: 'Changelog', link: '/changelog' },
           { text: 'Contributing', link: 'https://github.com/mpalmer79/agentforge/blob/main/CONTRIBUTING.md' }
