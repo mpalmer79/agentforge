@@ -1,5 +1,6 @@
 // Core exports
 export { Agent } from './agent';
+export type { ExtendedAgentConfig } from './agent';
 export { defineTool, createSimpleTool } from './tool';
 export {
   createMiddleware,
@@ -217,6 +218,140 @@ export type {
 // Batch/Performance exports
 export {
   RequestBatcher,
-  RequestDeduplicator,
+  RequestDeduplicator as BatchRequestDeduplicator,
   RateLimitedQueue,
 } from './batch';
+
+// ============================================
+// STAFF-LEVEL ADDITIONS
+// ============================================
+
+// Telemetry & Observability
+export { 
+  TelemetryCollector, 
+  initTelemetry, 
+  getTelemetry,
+  createConsoleExporter,
+  createBatchingExporter,
+  createOTLPExporter,
+} from './telemetry';
+export type { 
+  Span, 
+  SpanEvent, 
+  Metric, 
+  MetricUnit, 
+  TelemetryEvent, 
+  LogEntry, 
+  TelemetryHooks 
+} from './telemetry';
+
+// Resilience Patterns
+export {
+  CircuitBreaker,
+  RequestDeduplicator,
+  Bulkhead,
+  retryWithBackoff,
+  withTimeout,
+  TimeoutError,
+  HealthChecker,
+  withFallback,
+} from './resilience';
+export type {
+  CircuitState,
+  CircuitBreakerConfig,
+  RetryConfig,
+  HealthStatus,
+  FallbackProvider,
+} from './resilience';
+
+// Tokenization
+export {
+  getTokenCounter,
+  getModelFamily,
+  getContextWindow,
+  calculateBudget,
+  truncateToTokens,
+  MODEL_CONTEXT_WINDOWS,
+} from './tokenizer';
+export type {
+  ModelFamily,
+  TokenCounter,
+  TokenBudget,
+  TruncationOptions,
+} from './tokenizer';
+
+// Persistence
+export {
+  ConversationManager,
+  MemoryStorageAdapter,
+  FileStorageAdapter,
+  createMemoryConversationManager,
+  createFileConversationManager,
+} from './persistence';
+export type {
+  Conversation,
+  ConversationMetadata,
+  ConversationSummary,
+  SearchOptions,
+  StorageStats,
+  StorageAdapter,
+} from './persistence';
+
+// Schema Validation
+export {
+  validate,
+  validateOrThrow,
+  validateCompletionResponse,
+  validateStreamChunk,
+  sanitizeCompletionResponse,
+  createToolValidator,
+  validateJSON,
+  validatePartial,
+  assertInRange,
+  CompletionResponseSchema,
+  StreamChunkSchema,
+  MessageSchema,
+  ToolCallSchema,
+  UsageSchema,
+  ProviderConfigSchema,
+  AgentConfigSchema,
+} from './schema';
+export type { ValidationResult } from './schema';
+
+// Multi-Provider Orchestrator
+export {
+  MultiProviderOrchestrator,
+  createOrchestrator,
+  createPrimaryFallback,
+} from './orchestrator';
+export type {
+  ProviderEntry,
+  ProviderCapabilities,
+  RoutingStrategy,
+  OrchestratorConfig,
+} from './orchestrator';
+
+// Structured Logging
+export {
+  Logger,
+  ConsoleTransport,
+  BufferTransport,
+  initLogger,
+  getLogger,
+  createAgentLogger,
+} from './logger';
+export type {
+  LogLevel,
+  LogEntry,
+  LoggerConfig,
+  LogTransport,
+} from './logger';
+
+// Additional Middleware
+export {
+  createTimeoutMiddleware,
+  createValidationMiddleware,
+  createCostTrackingMiddleware,
+  createContentFilterMiddleware,
+  createMetricsMiddleware,
+} from './middleware';
