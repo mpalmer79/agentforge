@@ -6,6 +6,8 @@
 
 **A TypeScript framework for building production-ready, tool-using AI agents.**
 
+https://www.linkedin.com/in/mpalmer1234/
+
 AgentForge provides a type-safe, provider-agnostic foundation for creating AI agents that can use tools, maintain conversation context, and integrate seamlessly with React applications.
 
 ## ✨ Features
