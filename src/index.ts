@@ -318,6 +318,43 @@ export {
 } from './schema';
 export type { ValidationResult } from './schema';
 
+// Structured Logging
+export {
+  Logger,
+  initLogger,
+  getLogger,
+  createModuleLogger,
+  loggedOperation,
+  createConsoleTransport,
+  createJSONTransport,
+  createBatchingTransport,
+  createFilteringTransport,
+  createMultiTransport,
+} from './logging';
+export type {
+  LogLevel,
+  LogEntry,
+  LogTransport,
+  LoggerConfig,
+} from './logging';
+
+// Provider Factory
+export {
+  ProviderFactory,
+  createSingleProvider,
+  createMultiProvider,
+  createFailoverProvider,
+  instrumentProvider,
+} from './provider-factory';
+export type {
+  ProviderType,
+  ProviderFactoryConfig,
+  MultiProviderConfig,
+  ProviderStats,
+  AzureOpenAIConfig,
+  CustomProviderConfig,
+} from './provider-factory';
+
 // Multi-Provider Orchestrator
 export {
   MultiProviderOrchestrator,
