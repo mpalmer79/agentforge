@@ -9,12 +9,12 @@ import type {
   ToolResult,
   MiddlewareContext,
 } from './types';
-import { AgentForgeError, ToolExecutionError } from './types';
+import { AgentForgeError, ToolExecutionError } from './errors';
 import { composeMiddleware } from './middleware';
 import { generateId, estimateTokens } from './utils';
 
 /**
- * The main Agent class for orchestrating AI interactions with tools
+ * The main Agent class for orchestrating AI interactions with tools.
  */
 export class Agent {
   private provider: AgentConfig['provider'];
@@ -37,28 +37,22 @@ export class Agent {
     this.maxTokens = config.maxTokens;
   }
 
-  /**
-   * Run the agent with a user message
-   */
   async run(input: string | Message[], options?: { signal?: AbortSignal }): Promise<AgentResponse> {
     const messages = this.initializeMessages(input);
     const context = this.createContext(messages);
 
     let iterations = 0;
-    let lastResponse: AgentResponse | null = null;
+    let allToolResults: ToolResult[] = [];
 
     while (iterations < this.maxIterations) {
-      // Check for abort signal
       if (options?.signal?.aborted) {
-        throw new AgentForgeError('Agent execution aborted', 'ABORTED');
+        throw new AgentForgeError('Agent execution aborted', 'AGENT_ABORTED');
       }
 
       iterations++;
 
-      // Apply memory management
       const managedMessages = this.applyMemoryStrategy(context.messages);
 
-      // Build completion request
       const request: CompletionRequest = {
         messages: managedMessages,
         tools: this.getToolSchemas(),
@@ -66,7 +60,6 @@ export class Agent {
         maxTokens: this.maxTokens,
       };
 
-      // Create middleware context
       const middlewareContext: MiddlewareContext = {
         ...context,
         messages: managedMessages,
@@ -74,10 +67,8 @@ export class Agent {
       };
 
       try {
-        // Run before request middleware
         const processedContext = await this.middleware.runBeforeRequest(middlewareContext);
 
-        // Check for cache hit
         if (processedContext.metadata.__cacheHit && processedContext.metadata.__cachedResponse) {
           return {
             id: generateId('resp'),
@@ -86,16 +77,13 @@ export class Agent {
           };
         }
 
-        // Make the completion request
         const response = await this.provider.complete({
           ...processedContext.request,
           messages: processedContext.messages,
         });
 
-        // Run after response middleware
         const processedResponse = await this.middleware.runAfterResponse(response, processedContext);
 
-        // Add assistant message to context
         const assistantMessage: Message = {
           id: generateId('msg'),
           role: 'assistant',
@@ -104,15 +92,15 @@ export class Agent {
         };
         context.messages.push(assistantMessage);
 
-        // If no tool calls, we're done
+        // No tool calls - we're done
         if (!processedResponse.toolCalls || processedResponse.toolCalls.length === 0) {
-          lastResponse = {
+          return {
             id: processedResponse.id,
             content: processedResponse.content,
             messages: context.messages,
+            toolResults: allToolResults.length > 0 ? allToolResults : undefined,
             usage: processedResponse.usage,
           };
-          break;
         }
 
         // Execute tool calls
@@ -120,6 +108,8 @@ export class Agent {
           processedResponse.toolCalls,
           processedContext
         );
+
+        allToolResults = [...allToolResults, ...toolResults];
 
         // Add tool results to messages
         for (const result of toolResults) {
@@ -135,13 +125,8 @@ export class Agent {
           context.messages.push(toolMessage);
         }
 
-        lastResponse = {
-          id: processedResponse.id,
-          content: processedResponse.content,
-          messages: context.messages,
-          toolResults,
-          usage: processedResponse.usage,
-        };
+        // Continue loop to get next response after tool execution
+
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));
         await this.middleware.runOnError(err, middlewareContext);
@@ -149,19 +134,13 @@ export class Agent {
       }
     }
 
-    if (!lastResponse) {
-      throw new AgentForgeError(
-        `Agent exceeded maximum iterations (${this.maxIterations})`,
-        'MAX_ITERATIONS_EXCEEDED'
-      );
-    }
-
-    return lastResponse;
+    // Exceeded max iterations
+    throw new AgentForgeError(
+      `Agent exceeded maximum iterations (${this.maxIterations})`,
+      'AGENT_MAX_ITERATIONS'
+    );
   }
 
-  /**
-   * Stream the agent response
-   */
   async *stream(
     input: string | Message[],
     options?: { signal?: AbortSignal }
@@ -173,7 +152,7 @@ export class Agent {
 
     while (iterations < this.maxIterations) {
       if (options?.signal?.aborted) {
-        throw new AgentForgeError('Agent execution aborted', 'ABORTED');
+        throw new AgentForgeError('Agent execution aborted', 'AGENT_ABORTED');
       }
 
       iterations++;
@@ -222,7 +201,6 @@ export class Agent {
         }
       }
 
-      // Add assistant message
       context.messages.push({
         id: generateId('msg'),
         role: 'assistant',
@@ -230,13 +208,11 @@ export class Agent {
         timestamp: Date.now(),
       });
 
-      // If no tool calls, we're done
       if (toolCalls.length === 0) {
         yield { type: 'done', data: { content: fullContent } };
         break;
       }
 
-      // Execute tools and yield results
       const toolResults = await this.executeToolCalls(toolCalls, processedContext);
 
       for (const result of toolResults) {
@@ -253,42 +229,25 @@ export class Agent {
     }
   }
 
-  /**
-   * Add a tool to the agent
-   */
   addTool(tool: Tool): void {
     this.tools.set(tool.name, tool);
   }
 
-  /**
-   * Remove a tool from the agent
-   */
   removeTool(name: string): boolean {
     return this.tools.delete(name);
   }
 
-  /**
-   * Get all registered tools
-   */
   getTools(): Tool[] {
     return Array.from(this.tools.values());
   }
 
-  /**
-   * Update the system prompt
-   */
   setSystemPrompt(prompt: string): void {
     this.systemPrompt = prompt;
   }
 
-  // ============================================
-  // Private Methods
-  // ============================================
-
   private initializeMessages(input: string | Message[]): Message[] {
     const messages: Message[] = [];
 
-    // Add system prompt if defined
     if (this.systemPrompt) {
       messages.push({
         id: generateId('msg'),
@@ -298,7 +257,6 @@ export class Agent {
       });
     }
 
-    // Add input messages
     if (typeof input === 'string') {
       messages.push({
         id: generateId('msg'),
@@ -333,7 +291,6 @@ export class Agent {
 
     let result = [...messages];
 
-    // Apply max messages limit
     if (maxMessages && result.length > maxMessages) {
       const systemMessages = result.filter((m) => m.role === 'system');
       const otherMessages = result.filter((m) => m.role !== 'system');
@@ -346,25 +303,21 @@ export class Agent {
           result = [...systemMessages, ...otherMessages.slice(-maxMessages + systemMessages.length)];
           break;
         case 'summarize':
-          // For now, just trim (summarization would require another LLM call)
           result = [...systemMessages, ...otherMessages.slice(-maxMessages + systemMessages.length)];
           break;
       }
     }
 
-    // Apply max tokens limit
     if (maxTokens) {
       let totalTokens = 0;
       const filteredMessages: Message[] = [];
 
-      // Always include system messages
       const systemMessages = result.filter((m) => m.role === 'system');
       for (const msg of systemMessages) {
         totalTokens += estimateTokens(msg.content);
         filteredMessages.push(msg);
       }
 
-      // Add messages from the end until we hit the limit
       const otherMessages = result.filter((m) => m.role !== 'system').reverse();
       for (const msg of otherMessages) {
         const msgTokens = estimateTokens(msg.content);
@@ -376,7 +329,6 @@ export class Agent {
         }
       }
 
-      // Restore chronological order
       result = [
         ...filteredMessages.filter((m) => m.role === 'system'),
         ...filteredMessages.filter((m) => m.role !== 'system').reverse(),
@@ -393,7 +345,6 @@ export class Agent {
     const results: ToolResult[] = [];
 
     for (const toolCall of toolCalls) {
-      // Run middleware
       const processedToolCall = await this.middleware.runOnToolCall(toolCall, context);
 
       const tool = this.tools.get(processedToolCall.name);
@@ -414,7 +365,6 @@ export class Agent {
           result,
         };
 
-        // Run result middleware
         toolResult = await this.middleware.runOnToolResult(toolResult, context);
         results.push(toolResult);
       } catch (error) {
@@ -422,7 +372,7 @@ export class Agent {
         const toolError = new ToolExecutionError(
           `Tool "${processedToolCall.name}" failed: ${err.message}`,
           processedToolCall.name,
-          err
+          { cause: err }
         );
 
         results.push({
