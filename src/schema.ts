@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import { ValidationError } from './errors';
 import { getTelemetry } from './telemetry';
+import type { CompletionResponse, ToolCall } from './types';
 
 // ============================================
 // Schema Definitions
@@ -19,7 +20,7 @@ import { getTelemetry } from './telemetry';
 export const ToolCallSchema = z.object({
   id: z.string().min(1, 'Tool call ID is required'),
   name: z.string().min(1, 'Tool name is required'),
-  arguments: z.record(z.unknown()).default({}),
+  arguments: z.record(z.unknown()),
 });
 
 /**
@@ -173,8 +174,8 @@ export function validateOrThrow<T>(
 /**
  * Validate completion response from provider
  */
-export function validateCompletionResponse(response: unknown): z.infer<typeof CompletionResponseSchema> {
-  return validateOrThrow(CompletionResponseSchema, response, 'CompletionResponse');
+export function validateCompletionResponse(response: unknown): CompletionResponse {
+  return validateOrThrow(CompletionResponseSchema, response, 'CompletionResponse') as CompletionResponse;
 }
 
 /**
@@ -206,11 +207,11 @@ export function validateProviderConfig(config: unknown): z.infer<typeof Provider
  * Sanitize and normalize completion response
  * Handles edge cases and malformed data gracefully
  */
-export function sanitizeCompletionResponse(response: unknown): z.infer<typeof CompletionResponseSchema> {
+export function sanitizeCompletionResponse(response: unknown): CompletionResponse {
   const raw = response as Record<string, unknown>;
   
   // Ensure we have required fields with defaults
-  const sanitized = {
+  const sanitized: CompletionResponse = {
     id: String(raw.id ?? `generated_${Date.now()}`),
     content: String(raw.content ?? ''),
     finishReason: normalizeFinishReason(raw.finishReason),
@@ -228,7 +229,7 @@ export function sanitizeCompletionResponse(response: unknown): z.infer<typeof Co
     });
   }
   
-  return sanitized as z.infer<typeof CompletionResponseSchema>;
+  return sanitized;
 }
 
 function normalizeFinishReason(reason: unknown): 'stop' | 'tool_calls' | 'length' | 'error' | 'content_filter' {
@@ -254,22 +255,25 @@ function normalizeFinishReason(reason: unknown): 'stop' | 'tool_calls' | 'length
   return mapping[normalized] ?? 'stop';
 }
 
-function sanitizeToolCalls(toolCalls: unknown): z.infer<typeof ToolCallSchema>[] | undefined {
+function sanitizeToolCalls(toolCalls: unknown): ToolCall[] | undefined {
   if (!Array.isArray(toolCalls)) return undefined;
   if (toolCalls.length === 0) return undefined;
   
-  return toolCalls
+  const result = toolCalls
     .filter((tc): tc is Record<string, unknown> => tc && typeof tc === 'object')
     .map((tc, index) => {
       // Handle OpenAI's function property structure
       const functionProp = tc.function as Record<string, unknown> | undefined;
-      return {
+      const toolCall: ToolCall = {
         id: String(tc.id ?? `tc_${index}_${Date.now()}`),
         name: String(tc.name ?? functionProp?.name ?? 'unknown'),
         arguments: parseArguments(tc.arguments ?? functionProp?.arguments),
       };
+      return toolCall;
     })
     .filter(tc => tc.name !== 'unknown');
+  
+  return result.length > 0 ? result : undefined;
 }
 
 function parseArguments(args: unknown): Record<string, unknown> {
@@ -291,7 +295,7 @@ function parseArguments(args: unknown): Record<string, unknown> {
   return {};
 }
 
-function sanitizeUsage(usage: unknown): z.infer<typeof UsageSchema> {
+function sanitizeUsage(usage: unknown): CompletionResponse['usage'] {
   if (!usage || typeof usage !== 'object') return undefined;
   
   const raw = usage as Record<string, unknown>;
