@@ -1,37 +1,61 @@
 # 🔧 AgentForge
 
-[![npm version](https://img.shields.io/npm/v/agentforge.svg)](https://www.npmjs.com/package/agentforge)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue.svg)](https://www.typescriptlang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.4-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 
-**A TypeScript framework for building production-ready, tool-using AI agents.**
+**A production-ready TypeScript framework for building AI agents that actually work.**
 
-https://www.linkedin.com/in/mpalmer1234/
+[📚 Documentation](https://mpalmer79.github.io/agentforge/) • [🚀 Getting Started](https://mpalmer79.github.io/agentforge/guide/getting-started) • [💼 LinkedIn](https://www.linkedin.com/in/mpalmer1234/)
 
-AgentForge provides a type-safe, provider-agnostic foundation for creating AI agents that can use tools, maintain conversation context, and integrate seamlessly with React applications.
+---
+
+## Why AgentForge?
+
+Most AI agent frameworks break down when you try to ship them to production. AgentForge was designed from the ground up with **production patterns**: type safety, fault tolerance, observability, and clean architecture.
+
+### What This Project Demonstrates
+
+- 🏗️ **Modular Architecture** — Provider-agnostic design that scales
+- 🔒 **Type-Safe APIs** — Runtime validation with Zod, full TypeScript inference
+- ⚡ **Streaming Systems** — Async iterators for real-time responses
+- 🔗 **Middleware Pipelines** — Extensible request/response processing
+- 🛡️ **Production Patterns** — Circuit breakers, retry logic, graceful degradation
+- 📊 **Observability** — Distributed tracing, metrics, structured logging
+- 📚 **Complete Documentation** — Guides, API reference, and real-world examples
+
+---
 
 ## ✨ Features
 
-- **🔒 Type-Safe Tools** - Define tools with Zod schemas for full TypeScript inference
-- **🔌 Multi-Provider** - Works with OpenAI, Anthropic, and custom providers
-- **⚛️ React Hooks** - First-class React integration with `useAgent` and `useChat`
-- **🌊 Streaming** - Built-in support for streaming responses
-- **🧠 Memory Management** - Configurable conversation history and context windows
-- **🔄 Middleware** - Extensible middleware system for logging, caching, and more
-- **⚡ Production-Ready** - Error boundaries, retry logic, and graceful degradation
+### Core
+- **Type-Safe Tools** — Define tools with Zod schemas for full TypeScript inference
+- **Multi-Provider** — OpenAI, Anthropic, Azure, or custom providers
+- **Streaming** — Built-in async iterator support for real-time responses
+- **React Hooks** — First-class integration with `useAgent`, `useChat`, `useStreamingAgent`
+
+### Production-Ready (v1.0)
+- **Circuit Breakers** — Prevent cascading failures with configurable thresholds
+- **Request Deduplication** — Coalesce identical concurrent requests
+- **Retry with Backoff** — Exponential backoff with jitter for transient failures
+- **Graceful Degradation** — Feature flags and fallback responses
+- **Distributed Tracing** — OpenTelemetry-compatible spans and metrics
+- **Conversation Persistence** — Pluggable storage adapters (memory, file, custom)
+- **Token Management** — Accurate counting per model, budget tracking, smart truncation
+
+---
 
 ## 📦 Installation
+
 ```bash
-npm install agentforge
-# or
-yarn add agentforge
-# or
-pnpm add agentforge
+npm install agentforge zod
 ```
+
+---
 
 ## 🚀 Quick Start
 
-### Basic Agent
 ```typescript
 import { Agent, OpenAIProvider, defineTool } from 'agentforge';
 import { z } from 'zod';
@@ -45,7 +69,6 @@ const weatherTool = defineTool({
     unit: z.enum(['celsius', 'fahrenheit']).default('fahrenheit'),
   }),
   execute: async ({ location, unit }) => {
-    // Your implementation here
     return { temperature: 72, condition: 'sunny', location, unit };
   },
 });
@@ -58,11 +81,77 @@ const agent = new Agent({
 });
 
 // Run the agent
-const response = await agent.run('What\'s the weather in Boston?');
+const response = await agent.run("What's the weather in Boston?");
 console.log(response.content);
 ```
 
-### React Integration
+---
+
+## 🛡️ Production Features
+
+### Circuit Breaker & Resilience
+
+```typescript
+const agent = new Agent({
+  provider: new OpenAIProvider({ apiKey: process.env.OPENAI_API_KEY }),
+  
+  // Circuit breaker prevents cascading failures
+  circuitBreaker: {
+    enabled: true,
+    failureThreshold: 5,
+    resetTimeoutMs: 30000,
+  },
+  
+  // Deduplicate identical concurrent requests
+  deduplication: { enabled: true },
+  
+  // Limit concurrency
+  concurrency: { maxConcurrent: 10 },
+  
+  // Timeouts
+  timeouts: {
+    requestMs: 30000,
+    toolExecutionMs: 10000,
+  },
+});
+
+// Check health status
+const health = agent.getHealth();
+console.log(health.circuitBreaker?.state); // 'closed' | 'open' | 'half-open'
+```
+
+### Observability
+
+```typescript
+import { initTelemetry, createConsoleExporter } from 'agentforge';
+
+// Initialize telemetry
+initTelemetry(createConsoleExporter());
+
+// Telemetry automatically tracks:
+// - Request/response spans with timing
+// - Token usage metrics
+// - Error rates
+// - Tool execution duration
+```
+
+### Multi-Provider Failover
+
+```typescript
+import { createFailoverProvider } from 'agentforge';
+
+// Automatic failover between providers
+const provider = createFailoverProvider(
+  process.env.OPENAI_API_KEY,
+  process.env.ANTHROPIC_API_KEY,
+  { primaryModel: 'gpt-4-turbo', fallbackModel: 'claude-3-sonnet-20240229' }
+);
+```
+
+---
+
+## ⚛️ React Integration
+
 ```tsx
 import { useAgent, AgentProvider } from 'agentforge/react';
 
@@ -89,139 +178,68 @@ function ChatInterface() {
         disabled={isLoading}
         placeholder="Type a message..."
       />
-      {error && <div className="error">{error.message}</div>}
     </div>
   );
 }
 ```
 
-## 🔧 Core Concepts
+---
 
-### Providers
+## 🔧 Middleware
 
-AgentForge supports multiple LLM providers out of the box:
 ```typescript
-import { OpenAIProvider, AnthropicProvider } from 'agentforge';
-
-// OpenAI
-const openai = new OpenAIProvider({
-  apiKey: process.env.OPENAI_API_KEY,
-  model: 'gpt-4-turbo',
-});
-
-// Anthropic
-const anthropic = new AnthropicProvider({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-  model: 'claude-3-5-sonnet-20241022',
-});
-```
-
-### Tool Definition
-
-Tools are defined with full type safety using Zod schemas:
-```typescript
-import { defineTool } from 'agentforge';
-import { z } from 'zod';
-
-const searchTool = defineTool({
-  name: 'search_database',
-  description: 'Search the database for records',
-  parameters: z.object({
-    query: z.string(),
-    limit: z.number().min(1).max(100).default(10),
-    filters: z.object({
-      status: z.enum(['active', 'inactive']).optional(),
-      createdAfter: z.string().datetime().optional(),
-    }).optional(),
-  }),
-  execute: async (params) => {
-    // TypeScript knows the exact shape of params
-    const results = await db.search(params);
-    return results;
-  },
-});
-```
-
-### Middleware
-
-Add cross-cutting concerns with the middleware system:
-```typescript
-import { Agent, createMiddleware } from 'agentforge';
-
-const loggingMiddleware = createMiddleware({
-  name: 'logging',
-  beforeRequest: async (context) => {
-    console.log('Request:', context.messages);
-    return context;
-  },
-  afterResponse: async (response, context) => {
-    console.log('Response:', response.content);
-    return response;
-  },
-  onError: async (error, context) => {
-    console.error('Error:', error);
-    throw error;
-  },
-});
+import { 
+  createRateLimitMiddleware,
+  createCacheMiddleware,
+  createCostTrackingMiddleware,
+  loggingMiddleware 
+} from 'agentforge';
 
 const agent = new Agent({
   provider: openai,
-  middleware: [loggingMiddleware],
+  middleware: [
+    loggingMiddleware,
+    createRateLimitMiddleware({ maxRequestsPerMinute: 60 }),
+    createCacheMiddleware({ ttlMs: 300000 }),
+    createCostTrackingMiddleware({
+      onCost: (cost) => console.log(`Request cost: $${cost.total.toFixed(4)}`),
+    }),
+  ],
 });
 ```
 
-### Memory Management
+---
 
-Configure how conversation history is managed:
-```typescript
-const agent = new Agent({
-  provider: openai,
-  memory: {
-    maxMessages: 50,
-    maxTokens: 4000,
-    strategy: 'sliding-window', // or 'summarize', 'trim-oldest'
-  },
-});
-```
+## 📖 Documentation
 
-## 📖 API Reference
+Visit [mpalmer79.github.io/agentforge](https://mpalmer79.github.io/agentforge/) for:
 
-### `Agent`
+- **[Getting Started](https://mpalmer79.github.io/agentforge/guide/getting-started)** — Installation and first agent
+- **[Core Concepts](https://mpalmer79.github.io/agentforge/guide/core-concepts)** — Architecture overview
+- **[Tools](https://mpalmer79.github.io/agentforge/guide/tools)** — Defining type-safe tools
+- **[Providers](https://mpalmer79.github.io/agentforge/guide/providers)** — OpenAI, Anthropic, custom
+- **[Middleware](https://mpalmer79.github.io/agentforge/guide/middleware)** — Extending the pipeline
+- **[React Integration](https://mpalmer79.github.io/agentforge/guide/react-integration)** — Hooks and components
+- **[API Reference](https://mpalmer79.github.io/agentforge/api/agent)** — Complete API docs
 
-The main class for creating AI agents.
-
-| Option | Type | Description |
-|--------|------|-------------|
-| `provider` | `Provider` | LLM provider instance |
-| `tools` | `Tool[]` | Array of tools available to the agent |
-| `systemPrompt` | `string` | System prompt for the agent |
-| `middleware` | `Middleware[]` | Middleware stack |
-| `memory` | `MemoryConfig` | Memory configuration |
-
-### `useAgent` Hook
-
-React hook for agent integration.
-
-| Return Value | Type | Description |
-|--------------|------|-------------|
-| `messages` | `Message[]` | Conversation history |
-| `sendMessage` | `(content: string) => Promise<void>` | Send a message |
-| `isLoading` | `boolean` | Loading state |
-| `error` | `Error \| null` | Current error |
-| `reset` | `() => void` | Reset conversation |
+---
 
 ## 🛠️ Examples
 
-Check out the [examples](./examples) directory for complete implementations:
+| Example | Description |
+|---------|-------------|
+| [Basic Agent](./examples/basic-agent) | Simple tool-using agent |
+| [Customer Support](./examples/customer-support) | Multi-tool support agent with escalation |
+| [Data Analyst](./examples/data-analyst) | Agent with database query tools |
+| [React Chat](./examples/react-chat) | Full React chat interface |
 
-- **[Basic Agent](./examples/basic-agent)** - Simple tool-using agent
-- **[Customer Support](./examples/customer-support)** - Multi-tool support agent
-- **[Data Analyst](./examples/data-analyst)** - Agent with database tools
-- **[React Chat](./examples/react-chat)** - Full React chat interface
+---
 
 ## 🤝 Contributing
 
 Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.md) for details.
+
+---
 
 ## 📄 License
 
@@ -229,4 +247,6 @@ MIT © [Michael Palmer](https://github.com/mpalmer79)
 
 ---
 
-**Built with ❤️ for the AI engineering community**
+<p align="center">
+  <strong>Built with TypeScript for production AI systems</strong>
+</p>
