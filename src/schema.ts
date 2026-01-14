@@ -36,7 +36,7 @@ export const UsageSchema = z.object({
  */
 export const CompletionResponseSchema = z.object({
   id: z.string().min(1, 'Response ID is required'),
-  content: z.string().default(''),
+  content: z.string(),
   toolCalls: z.array(ToolCallSchema).optional(),
   usage: UsageSchema,
   finishReason: z.enum(['stop', 'tool_calls', 'length', 'error', 'content_filter']),
@@ -260,11 +260,15 @@ function sanitizeToolCalls(toolCalls: unknown): z.infer<typeof ToolCallSchema>[]
   
   return toolCalls
     .filter((tc): tc is Record<string, unknown> => tc && typeof tc === 'object')
-    .map((tc, index) => ({
-      id: String(tc.id ?? `tc_${index}_${Date.now()}`),
-      name: String(tc.name ?? tc.function?.name ?? 'unknown'),
-      arguments: parseArguments(tc.arguments ?? tc.function?.arguments),
-    }))
+    .map((tc, index) => {
+      // Handle OpenAI's function property structure
+      const functionProp = tc.function as Record<string, unknown> | undefined;
+      return {
+        id: String(tc.id ?? `tc_${index}_${Date.now()}`),
+        name: String(tc.name ?? functionProp?.name ?? 'unknown'),
+        arguments: parseArguments(tc.arguments ?? functionProp?.arguments),
+      };
+    })
     .filter(tc => tc.name !== 'unknown');
 }
 
@@ -357,19 +361,13 @@ export function validateJSON<T = unknown>(
 /**
  * Partial validation - validates present fields but doesn't require all fields
  */
-export function validatePartial<T>(
-  schema: z.ZodType<T>,
+export function validatePartial<T extends z.ZodRawShape>(
+  schema: z.ZodObject<T>,
   data: unknown,
   context?: string
-): ValidationResult<Partial<T>> {
-  // Create a partial version of the schema
-  if (schema instanceof z.ZodObject) {
-    const partialSchema = schema.partial();
-    return validate(partialSchema, data, context);
-  }
-  
-  // For non-object schemas, just validate normally
-  return validate(schema, data, context) as ValidationResult<Partial<T>>;
+): ValidationResult<Partial<z.infer<z.ZodObject<T>>>> {
+  const partialSchema = schema.partial();
+  return validate(partialSchema, data, context);
 }
 
 // ============================================
