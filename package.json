@@ -21,8 +21,10 @@
     "build": "tsup src/index.ts src/react/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts src/react/index.ts --format cjs,esm --dts --watch",
     "lint": "eslint src/",
-    "test": "vitest",
-    "test:coverage": "vitest --coverage",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -53,9 +55,14 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@testing-library/react": "^15.0.7",
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.3",
+    "@vitejs/plugin-react": "^4.3.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "@vitest/ui": "^1.6.0",
     "eslint": "^9.4.0",
+    "jsdom": "^24.1.0",
     "tsup": "^8.1.0",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0"
@@ -72,3 +79,24 @@
     "node": ">=18.0.0"
   }
 }
+```
+
+---
+
+## Summary: Test Suite Structure
+```
+tests/
+├── setup.ts                          # Global mocks & helpers
+├── mocks/
+│   ├── providers.ts                  # Mock provider factories
+│   └── tools.ts                      # Mock tool definitions
+├── unit/
+│   ├── utils.test.ts                 # 15 tests
+│   ├── tool.test.ts                  # 20 tests
+│   ├── middleware.test.ts            # 18 tests
+│   ├── agent.test.ts                 # 22 tests
+│   └── providers/
+│       ├── openai.test.ts            # 12 tests
+│       └── anthropic.test.ts         # 10 tests
+└── integration/
+    └── agent-workflow.test.ts        # 8 tests
