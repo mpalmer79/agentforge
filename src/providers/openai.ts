@@ -122,10 +122,7 @@ export class OpenAIProvider extends BaseProvider {
       stream: true,
     };
 
-    const toolCallsAccumulator: Map
-      number,
-      { id: string; name: string; arguments: string }
-    > = new Map();
+    const toolCallsAccumulator: Map<number, { id: string; name: string; arguments: string }> = new Map();
 
     for await (const data of this.fetchStream('/chat/completions', {
       method: 'POST',
@@ -163,7 +160,6 @@ export class OpenAIProvider extends BaseProvider {
           }
         }
 
-        // If finished, emit accumulated tool calls
         if (choice.finish_reason === 'tool_calls') {
           streamChunk.delta.toolCalls = Array.from(toolCallsAccumulator.values()).map(
             (tc) => ({
@@ -176,7 +172,6 @@ export class OpenAIProvider extends BaseProvider {
 
         yield streamChunk;
       } catch {
-        // Skip invalid JSON chunks
         continue;
       }
     }
