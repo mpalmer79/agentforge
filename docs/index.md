@@ -20,8 +20,7 @@ hero:
       link: https://www.linkedin.com/in/mpalmer1234/
 
 features:
-  - icon: 🛠️
-    title: Type-Safe Tools
+  - title: Type-Safe Tools
     details: Define tools with Zod schemas for full TypeScript inference. Parameters are validated at runtime and compile time.
   - icon: ⚡
     title: Streaming Built-In
@@ -65,6 +64,54 @@ features:
   vertical-align: middle;
 }
 
+/* Type-Safe Tools Card - Background Image */
+.VPFeatures .VPFeature:first-child,
+.VPFeatures .items .item:first-child .VPFeature,
+.VPFeatures .grid .item:first-child .VPFeature {
+  background-image: url('/type.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.VPFeatures .VPFeature:first-child::before,
+.VPFeatures .items .item:first-child .VPFeature::before,
+.VPFeatures .grid .item:first-child .VPFeature::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.VPFeatures .VPFeature:first-child .title,
+.VPFeatures .VPFeature:first-child .details,
+.VPFeatures .items .item:first-child .title,
+.VPFeatures .items .item:first-child .details {
+  position: relative;
+  z-index: 1;
+  color: white !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Hide icon on first card */
+.VPFeatures .VPFeature:first-child .icon,
+.VPFeatures .VPFeature:first-child .VPImage,
+.VPFeatures .items .item:first-child .icon,
+.VPFeatures .items .item:first-child .VPImage,
+.VPFeatures .VPFeature:first-child .box > .icon,
+.VPFeatures .items .item:first-child .box > .icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
 .home-content {
   max-width: 1152px;
   margin: 0 auto;
@@ -84,7 +131,7 @@ features:
   height: 24px;
 }
 
-/* Why Section - NEW */
+/* Why Section */
 .why-exists {
   margin: 3rem 0;
   padding: 2.5rem;
@@ -140,7 +187,7 @@ features:
   50% { opacity: 0.5; }
 }
 
-/* What This Demonstrates - NEW */
+/* What This Demonstrates */
 .demonstrates-section {
   margin: 4rem 0;
   padding: 3rem;
