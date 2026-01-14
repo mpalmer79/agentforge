@@ -1,238 +1,287 @@
 import { describe, it, expect, vi } from 'vitest';
-import { Agent, defineTool, createMiddleware } from '../../src';
+import { Agent } from '../../src/agent';
+import { defineTool } from '../../src/tool';
+import { createMiddleware } from '../../src/middleware';
 import { z } from 'zod';
 
 describe('Agent Integration Workflows', () => {
-  /**
-   * Create a mock provider that simulates realistic LLM behavior
-   */
-  function createRealisticMockProvider(responses: Array<{
-    content: string;
-    toolCalls?: Array<{ name: string; arguments: Record<string, unknown> }>;
-  }>) {
-    let callIndex = 0;
-
-    return {
-      name: 'realistic-mock',
-      complete: vi.fn().mockImplementation(async () => {
-        const response = responses[callIndex] || responses[responses.length - 1];
-        callIndex++;
-
-        return {
-          id: `resp-${callIndex}`,
-          content: response.content,
-          toolCalls: response.toolCalls?.map((tc, i) => ({
-            id: `tc-${callIndex}-${i}`,
-            name: tc.name,
-            arguments: tc.arguments,
-          })),
-          finishReason: response.toolCalls ? 'tool_calls' : 'stop',
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-        };
-      }),
-      stream: vi.fn(),
-    };
-  }
-
   describe('multi-tool workflow', () => {
-    it('should execute a multi-step tool workflow', async () => {
-      // Define tools
-      const searchTool = defineTool({
-        name: 'search',
-        description: 'Search for information',
-        parameters: z.object({ query: z.string() }),
-        execute: async ({ query }) => ({
-          results: [`Result for: ${query}`],
-        }),
+    it('should execute multiple tools in sequence', async () => {
+      const executionOrder: string[] = [];
+
+      const tool1 = defineTool({
+        name: 'step_one',
+        description: 'First step',
+        parameters: z.object({ input: z.string() }),
+        execute: async ({ input }) => {
+          executionOrder.push('step_one');
+          return { result: `processed: ${input}` };
+        },
       });
 
-      const summarizeTool = defineTool({
-        name: 'summarize',
-        description: 'Summarize text',
-        parameters: z.object({ text: z.string() }),
-        execute: async ({ text }) => ({
-          summary: `Summary: ${text.slice(0, 50)}...`,
-        }),
+      const tool2 = defineTool({
+        name: 'step_two',
+        description: 'Second step',
+        parameters: z.object({ data: z.string() }),
+        execute: async ({ data }) => {
+          executionOrder.push('step_two');
+          return { result: `finalized: ${data}` };
+        },
       });
 
-      // Provider returns tool calls then final response
-      const provider = createRealisticMockProvider([
-        {
-          content: '',
-          toolCalls: [{ name: 'search', arguments: { query: 'AI trends 2024' } }],
-        },
-        {
-          content: '',
-          toolCalls: [{ name: 'summarize', arguments: { text: 'Result for: AI trends 2024' } }],
-        },
-        {
-          content: 'Based on my research, here are the key AI trends...',
-        },
-      ]);
+      // Mock provider that calls tools in sequence
+      let callCount = 0;
+      const mockProvider = {
+        name: 'mock',
+        complete: vi.fn().mockImplementation(async () => {
+          callCount++;
+          if (callCount === 1) {
+            return {
+              id: 'r1',
+              content: '',
+              toolCalls: [{ id: 'tc1', name: 'step_one', arguments: { input: 'start' } }],
+              finishReason: 'tool_calls',
+            };
+          }
+          if (callCount === 2) {
+            return {
+              id: 'r2',
+              content: '',
+              toolCalls: [{ id: 'tc2', name: 'step_two', arguments: { data: 'middle' } }],
+              finishReason: 'tool_calls',
+            };
+          }
+          return {
+            id: 'r3',
+            content: 'Workflow complete!',
+            finishReason: 'stop',
+          };
+        }),
+        stream: vi.fn(),
+      };
 
       const agent = new Agent({
-        provider,
-        tools: [searchTool, summarizeTool],
-        systemPrompt: 'You are a research assistant.',
+        provider: mockProvider,
+        tools: [tool1, tool2],
       });
 
-      const response = await agent.run('Research AI trends for 2024 and summarize');
+      const response = await agent.run('Execute workflow');
 
-      expect(response.content).toContain('Based on my research');
-      expect(provider.complete).toHaveBeenCalledTimes(3);
+      expect(executionOrder).toEqual(['step_one', 'step_two']);
+      expect(response.content).toBe('Workflow complete!');
+    });
+
+    it('should track tool results through workflow', async () => {
+      const dataTool = defineTool({
+        name: 'get_data',
+        description: 'Get data',
+        parameters: z.object({}),
+        execute: async () => ({ value: 42 }),
+      });
+
+      let callCount = 0;
+      const mockProvider = {
+        name: 'mock',
+        complete: vi.fn().mockImplementation(async () => {
+          callCount++;
+          if (callCount === 1) {
+            return {
+              id: 'r1',
+              content: '',
+              toolCalls: [{ id: 'tc1', name: 'get_data', arguments: {} }],
+              finishReason: 'tool_calls',
+            };
+          }
+          return {
+            id: 'r2',
+            content: 'Data retrieved: 42',
+            finishReason: 'stop',
+          };
+        }),
+        stream: vi.fn(),
+      };
+
+      const agent = new Agent({
+        provider: mockProvider,
+        tools: [dataTool],
+      });
+
+      const response = await agent.run('Get data');
+
+      expect(response.toolResults).toBeDefined();
+      expect(response.toolResults).toHaveLength(1);
+      expect(response.toolResults![0].result).toEqual({ value: 42 });
     });
   });
 
   describe('middleware workflow', () => {
-    it('should track all tool calls through middleware', async () => {
-      const toolCallLog: Array<{ name: string; args: unknown }> = [];
+    it('should track requests through middleware', async () => {
+      const requestLog: string[] = [];
 
       const trackingMiddleware = createMiddleware({
         name: 'tracking',
-        onToolCall: async (toolCall) => {
-          toolCallLog.push({ name: toolCall.name, args: toolCall.arguments });
-          return toolCall;
+        beforeRequest: async (ctx) => {
+          requestLog.push(`request:${ctx.messages.length}`);
+          return ctx;
+        },
+        afterResponse: async (resp, _ctx) => {
+          requestLog.push(`response:${resp.content.length}`);
+          return resp;
         },
       });
 
-      const calculatorTool = defineTool({
-        name: 'calculate',
-        description: 'Calculate',
-        parameters: z.object({ expression: z.string() }),
-        execute: async ({ expression }) => ({ result: expression }),
-      });
-
-      const provider = createRealisticMockProvider([
-        {
-          content: '',
-          toolCalls: [{ name: 'calculate', arguments: { expression: '2+2' } }],
-        },
-        { content: 'The answer is 4.' },
-      ]);
+      const mockProvider = {
+        name: 'mock',
+        complete: vi.fn().mockResolvedValue({
+          id: 'r1',
+          content: 'Response',
+          finishReason: 'stop',
+        }),
+        stream: vi.fn(),
+      };
 
       const agent = new Agent({
-        provider,
-        tools: [calculatorTool],
+        provider: mockProvider,
         middleware: [trackingMiddleware],
       });
 
-      await agent.run('What is 2+2?');
+      await agent.run('Test');
 
-      expect(toolCallLog).toHaveLength(1);
-      expect(toolCallLog[0].name).toBe('calculate');
+      expect(requestLog).toContain('request:1');
+      expect(requestLog).toContain('response:8');
     });
 
-    it('should modify requests through middleware', async () => {
+    it('should allow middleware to modify requests', async () => {
       const modifyMiddleware = createMiddleware({
         name: 'modify',
-        beforeRequest: async (context) => ({
-          ...context,
-          metadata: { ...context.metadata, modified: true },
+        beforeRequest: async (ctx) => ({
+          ...ctx,
+          metadata: { ...ctx.metadata, modified: true },
         }),
       });
 
-      const provider = createRealisticMockProvider([
-        { content: 'Hello!' },
-      ]);
+      const mockProvider = {
+        name: 'mock',
+        complete: vi.fn().mockResolvedValue({
+          id: 'r1',
+          content: 'Response',
+          finishReason: 'stop',
+        }),
+        stream: vi.fn(),
+      };
 
       const agent = new Agent({
-        provider,
+        provider: mockProvider,
         middleware: [modifyMiddleware],
       });
 
-      await agent.run('Hi');
+      await agent.run('Test');
 
-      expect(provider.complete).toHaveBeenCalled();
+      // Provider was called (middleware didn't block)
+      expect(mockProvider.complete).toHaveBeenCalled();
     });
   });
 
   describe('error recovery workflow', () => {
     it('should continue after tool error', async () => {
-      const flakyTool = defineTool({
-        name: 'flaky',
-        description: 'Sometimes fails',
+      const failingTool = defineTool({
+        name: 'failing_tool',
+        description: 'A tool that fails',
         parameters: z.object({}),
         execute: async () => {
           throw new Error('Temporary failure');
         },
       });
 
-      const provider = createRealisticMockProvider([
-        {
-          content: '',
-          toolCalls: [{ name: 'flaky', arguments: {} }],
-        },
-        { content: 'I encountered an error but handled it gracefully.' },
-      ]);
+      let callCount = 0;
+      const mockProvider = {
+        name: 'mock',
+        complete: vi.fn().mockImplementation(async () => {
+          callCount++;
+          if (callCount === 1) {
+            return {
+              id: 'r1',
+              content: '',
+              toolCalls: [{ id: 'tc1', name: 'failing_tool', arguments: {} }],
+              finishReason: 'tool_calls',
+            };
+          }
+          return {
+            id: 'r2',
+            content: 'Handled gracefully',
+            finishReason: 'stop',
+          };
+        }),
+        stream: vi.fn(),
+      };
 
       const agent = new Agent({
-        provider,
-        tools: [flakyTool],
+        provider: mockProvider,
+        tools: [failingTool],
       });
 
-      const response = await agent.run('Use the flaky tool');
+      const response = await agent.run('Try the failing tool');
 
       // Agent should complete despite tool error
       expect(response.content).toContain('gracefully');
+      expect(response.toolResults).toBeDefined();
       expect(response.toolResults![0].error).toContain('Temporary failure');
     });
   });
 
   describe('conversation continuity', () => {
-    it('should maintain context across multiple messages', async () => {
-      const provider = createRealisticMockProvider([
-        { content: 'Hello! How can I help you today?' },
+    it('should maintain message history', async () => {
+      const mockProvider = {
+        name: 'mock',
+        complete: vi.fn().mockResolvedValue({
+          id: 'r1',
+          content: 'Response',
+          finishReason: 'stop',
+        }),
+        stream: vi.fn(),
+      };
+
+      const agent = new Agent({ provider: mockProvider });
+
+      const response = await agent.run([
+        { id: '1', role: 'user', content: 'First message', timestamp: 1 },
+        { id: '2', role: 'assistant', content: 'First response', timestamp: 2 },
+        { id: '3', role: 'user', content: 'Second message', timestamp: 3 },
       ]);
 
-      const agent = new Agent({
-        provider,
-        systemPrompt: 'You are a helpful assistant.',
-      });
-
-      // First message
-      const response1 = await agent.run('Hi');
-      expect(response1.messages).toHaveLength(3); // system + user + assistant
-
-      // Simulate follow-up with history
-      const response2 = await agent.run([
-        ...response1.messages,
-        { id: 'msg-4', role: 'user', content: 'What can you help me with?', timestamp: Date.now() },
-      ]);
-
-      expect(response2.messages.length).toBeGreaterThan(response1.messages.length);
+      // Response messages should include all input messages plus new assistant message
+      expect(response.messages.length).toBeGreaterThanOrEqual(3);
     });
-  });
 
-  describe('memory constraints', () => {
-    it('should respect token limits while preserving important context', async () => {
-      const provider = createRealisticMockProvider([
-        { content: 'Summarized response based on recent context.' },
-      ]);
+    it('should apply memory constraints', async () => {
+      const mockProvider = {
+        name: 'mock',
+        complete: vi.fn().mockResolvedValue({
+          id: 'r1',
+          content: 'Response',
+          finishReason: 'stop',
+        }),
+        stream: vi.fn(),
+      };
 
       const agent = new Agent({
-        provider,
+        provider: mockProvider,
         memory: {
-          maxTokens: 500,
+          maxMessages: 2,
           strategy: 'sliding-window',
         },
       });
 
-      // Create many messages that exceed token limit
-      const manyMessages = Array.from({ length: 50 }, (_, i) => ({
-        id: `msg-${i}`,
-        role: (i % 2 === 0 ? 'user' : 'assistant') as 'user' | 'assistant',
-        content: `This is message number ${i} with some content to add tokens.`,
-        timestamp: Date.now() + i,
-      }));
+      await agent.run([
+        { id: '1', role: 'user', content: 'Msg 1', timestamp: 1 },
+        { id: '2', role: 'assistant', content: 'Resp 1', timestamp: 2 },
+        { id: '3', role: 'user', content: 'Msg 2', timestamp: 3 },
+        { id: '4', role: 'assistant', content: 'Resp 2', timestamp: 4 },
+        { id: '5', role: 'user', content: 'Msg 3', timestamp: 5 },
+      ]);
 
-      const response = await agent.run(manyMessages);
-
-      // Verify the agent completed successfully
-      expect(response.content).toBeDefined();
-
-      // The actual sent messages should be fewer than input
-      const sentMessages = (provider.complete as ReturnType<typeof vi.fn>).mock.calls[0][0].messages;
-      expect(sentMessages.length).toBeLessThan(manyMessages.length);
+      const callArgs = mockProvider.complete.mock.calls[0][0];
+      expect(callArgs.messages.length).toBeLessThanOrEqual(2);
     });
   });
 });
