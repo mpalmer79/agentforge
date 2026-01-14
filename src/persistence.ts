@@ -7,7 +7,7 @@
  * - Custom adapters (Redis, PostgreSQL, etc.)
  */
 
-import type { Message, AgentContext, ToolResult } from './types';
+import type { Message, ToolResult } from './types';
 import { generateId } from './utils';
 
 // ============================================
