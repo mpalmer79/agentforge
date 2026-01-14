@@ -2,73 +2,93 @@ import { z } from 'zod';
 import type { Tool, ToolDefinition, ToolSchema } from './types';
 
 /**
+ * Extended type for accessing Zod internals
+ */
+interface ZodDefWithType {
+  typeName: string;
+  description?: string;
+  checks?: Array<{ kind: string; value?: unknown; regex?: RegExp }>;
+  type?: z.ZodType;
+  innerType?: z.ZodType;
+  shape?: () => Record<string, z.ZodType>;
+  values?: string[];
+  options?: z.ZodType[];
+  value?: unknown;
+  defaultValue?: () => unknown;
+  minLength?: { value: number } | null;
+  maxLength?: { value: number } | null;
+}
+
+/**
  * Convert a Zod schema to JSON Schema format for LLM providers
  */
 function zodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
   const processSchema = (s: z.ZodType): Record<string, unknown> => {
-    const typeName = s._def.typeName;
+    const def = s._def as ZodDefWithType;
+    const typeName = def.typeName;
 
     switch (typeName) {
       case 'ZodString': {
         const stringSchema: Record<string, unknown> = { type: 'string' };
-        const def = s._def as z.ZodStringDef;
         if (def.description) stringSchema.description = def.description;
-        for (const check of def.checks) {
-          if (check.kind === 'min') stringSchema.minLength = check.value;
-          if (check.kind === 'max') stringSchema.maxLength = check.value;
-          if (check.kind === 'regex') stringSchema.pattern = check.regex.source;
-          if (check.kind === 'email') stringSchema.format = 'email';
-          if (check.kind === 'url') stringSchema.format = 'uri';
-          if (check.kind === 'datetime') stringSchema.format = 'date-time';
+        if (def.checks) {
+          for (const check of def.checks) {
+            if (check.kind === 'min') stringSchema.minLength = check.value;
+            if (check.kind === 'max') stringSchema.maxLength = check.value;
+            if (check.kind === 'regex' && check.regex) stringSchema.pattern = check.regex.source;
+            if (check.kind === 'email') stringSchema.format = 'email';
+            if (check.kind === 'url') stringSchema.format = 'uri';
+            if (check.kind === 'datetime') stringSchema.format = 'date-time';
+          }
         }
         return stringSchema;
       }
 
       case 'ZodNumber': {
         const numSchema: Record<string, unknown> = { type: 'number' };
-        const def = s._def as z.ZodNumberDef;
         if (def.description) numSchema.description = def.description;
-        for (const check of def.checks) {
-          if (check.kind === 'min') numSchema.minimum = check.value;
-          if (check.kind === 'max') numSchema.maximum = check.value;
-          if (check.kind === 'int') numSchema.type = 'integer';
+        if (def.checks) {
+          for (const check of def.checks) {
+            if (check.kind === 'min') numSchema.minimum = check.value;
+            if (check.kind === 'max') numSchema.maximum = check.value;
+            if (check.kind === 'int') numSchema.type = 'integer';
+          }
         }
         return numSchema;
       }
 
       case 'ZodBoolean': {
         const boolSchema: Record<string, unknown> = { type: 'boolean' };
-        if (s._def.description) boolSchema.description = s._def.description;
+        if (def.description) boolSchema.description = def.description;
         return boolSchema;
       }
 
       case 'ZodArray': {
-        const def = s._def as z.ZodArrayDef;
         const arraySchema: Record<string, unknown> = {
           type: 'array',
-          items: processSchema(def.type),
+          items: def.type ? processSchema(def.type) : { type: 'string' },
         };
         if (def.description) arraySchema.description = def.description;
-        if (def.minLength !== null) arraySchema.minItems = def.minLength.value;
-        if (def.maxLength !== null) arraySchema.maxItems = def.maxLength.value;
+        if (def.minLength !== null && def.minLength !== undefined) {
+          arraySchema.minItems = def.minLength.value;
+        }
+        if (def.maxLength !== null && def.maxLength !== undefined) {
+          arraySchema.maxItems = def.maxLength.value;
+        }
         return arraySchema;
       }
 
       case 'ZodObject': {
-        const def = s._def as z.ZodObjectDef;
-        const shape = def.shape();
+        const shape = def.shape ? def.shape() : {};
         const properties: Record<string, unknown> = {};
         const required: string[] = [];
 
         for (const [key, value] of Object.entries(shape)) {
           const fieldSchema = value as z.ZodType;
+          const fieldDef = fieldSchema._def as ZodDefWithType;
           properties[key] = processSchema(fieldSchema);
 
-          // Check if field is required (not optional and no default)
-          if (
-            fieldSchema._def.typeName !== 'ZodOptional' &&
-            fieldSchema._def.typeName !== 'ZodDefault'
-          ) {
+          if (fieldDef.typeName !== 'ZodOptional' && fieldDef.typeName !== 'ZodDefault') {
             required.push(key);
           }
         }
@@ -83,44 +103,40 @@ function zodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
       }
 
       case 'ZodEnum': {
-        const def = s._def as z.ZodEnumDef;
         const enumSchema: Record<string, unknown> = {
           type: 'string',
-          enum: def.values,
+          enum: def.values || [],
         };
         if (def.description) enumSchema.description = def.description;
         return enumSchema;
       }
 
       case 'ZodOptional': {
-        const def = s._def as z.ZodOptionalDef;
-        return processSchema(def.innerType);
+        return def.innerType ? processSchema(def.innerType) : { type: 'string' };
       }
 
       case 'ZodDefault': {
-        const def = s._def as z.ZodDefaultDef;
-        const innerSchema = processSchema(def.innerType);
-        innerSchema.default = def.defaultValue();
+        const innerSchema = def.innerType ? processSchema(def.innerType) : { type: 'string' };
+        if (def.defaultValue) {
+          innerSchema.default = def.defaultValue();
+        }
         return innerSchema;
       }
 
       case 'ZodNullable': {
-        const def = s._def as z.ZodNullableDef;
-        const innerSchema = processSchema(def.innerType);
+        const innerSchema = def.innerType ? processSchema(def.innerType) : { type: 'string' };
         return {
           oneOf: [innerSchema, { type: 'null' }],
         };
       }
 
       case 'ZodUnion': {
-        const def = s._def as z.ZodUnionDef;
         return {
-          oneOf: def.options.map((opt: z.ZodType) => processSchema(opt)),
+          oneOf: (def.options || []).map((opt: z.ZodType) => processSchema(opt)),
         };
       }
 
       case 'ZodLiteral': {
-        const def = s._def as z.ZodLiteralDef;
         return { const: def.value };
       }
 
@@ -140,14 +156,12 @@ export function defineTool<TParams extends z.ZodType>(
 ): Tool<TParams> {
   const { name, description, parameters, execute } = definition;
 
-  // Validate name format
   if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
     throw new Error(
       `Invalid tool name "${name}". Must start with a letter or underscore and contain only alphanumeric characters and underscores.`
     );
   }
 
-  // Wrap execute with validation
   const validatedExecute = async (params: z.infer<TParams>): Promise<unknown> => {
     const parsed = parameters.parse(params);
     return execute(parsed);
