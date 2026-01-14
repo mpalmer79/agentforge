@@ -26,14 +26,11 @@ features:
     details: Real-time token streaming with async iterators. Build responsive UIs that show content as it generates.
   - title: Multi-Provider
     details: Seamlessly switch between OpenAI, Anthropic, or build custom providers. Same API, any LLM.
-  - icon: 🔗
-    title: Middleware Pipeline
+  - title: Middleware Pipeline
     details: Extensible request/response pipeline for logging, caching, rate limiting, and custom processing.
-  - icon: ⚛️
-    title: React Hooks
+  - title: React Hooks
     details: First-class React integration with useAgent, useChat, and useStreamingAgent hooks.
-  - icon: 🛡️
-    title: Enterprise Ready
+  - title: Enterprise Ready
     details: Comprehensive error handling, Result types, branded types, and production-grade patterns.
 ---
 
@@ -69,7 +66,7 @@ features:
 /* Card 1: Type-Safe Tools - /type.png */
 .VPFeatures .items .item:nth-child(1) .VPFeature {
   background-image: url('/type.png') !important;
-  background-size: cover !important;
+  background-size: 100% 100% !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
   position: relative;
@@ -107,7 +104,7 @@ features:
 /* Card 2: Streaming Built-In - /streaming.png */
 .VPFeatures .items .item:nth-child(2) .VPFeature {
   background-image: url('/streaming.png') !important;
-  background-size: cover !important;
+  background-size: 100% 100% !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
   position: relative;
@@ -145,7 +142,7 @@ features:
 /* Card 3: Multi-Provider - /multi-provider.png */
 .VPFeatures .items .item:nth-child(3) .VPFeature {
   background-image: url('/multi-provider.png') !important;
-  background-size: cover !important;
+  background-size: 100% 100% !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
   position: relative;
@@ -175,6 +172,120 @@ features:
 .VPFeatures .items .item:nth-child(3) .VPFeature .icon,
 .VPFeatures .items .item:nth-child(3) .VPFeature .VPImage,
 .VPFeatures .items .item:nth-child(3) .VPFeature .box > .icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Card 4: Middleware Pipeline - /middleware.png */
+.VPFeatures .items .item:nth-child(4) .VPFeature {
+  background-image: url('/middleware.png') !important;
+  background-size: 100% 100% !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.VPFeatures .items .item:nth-child(4) .VPFeature::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.VPFeatures .items .item:nth-child(4) .VPFeature .title,
+.VPFeatures .items .item:nth-child(4) .VPFeature .details {
+  position: relative;
+  z-index: 1;
+  color: white !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.VPFeatures .items .item:nth-child(4) .VPFeature .icon,
+.VPFeatures .items .item:nth-child(4) .VPFeature .VPImage,
+.VPFeatures .items .item:nth-child(4) .VPFeature .box > .icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Card 5: React Hooks - /react.png */
+.VPFeatures .items .item:nth-child(5) .VPFeature {
+  background-image: url('/react.png') !important;
+  background-size: 100% 100% !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.VPFeatures .items .item:nth-child(5) .VPFeature::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.VPFeatures .items .item:nth-child(5) .VPFeature .title,
+.VPFeatures .items .item:nth-child(5) .VPFeature .details {
+  position: relative;
+  z-index: 1;
+  color: white !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.VPFeatures .items .item:nth-child(5) .VPFeature .icon,
+.VPFeatures .items .item:nth-child(5) .VPFeature .VPImage,
+.VPFeatures .items .item:nth-child(5) .VPFeature .box > .icon {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Card 6: Enterprise Ready - /enterprise.png */
+.VPFeatures .items .item:nth-child(6) .VPFeature {
+  background-image: url('/enterprise.png') !important;
+  background-size: 100% 100% !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.VPFeatures .items .item:nth-child(6) .VPFeature::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.VPFeatures .items .item:nth-child(6) .VPFeature .title,
+.VPFeatures .items .item:nth-child(6) .VPFeature .details {
+  position: relative;
+  z-index: 1;
+  color: white !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.VPFeatures .items .item:nth-child(6) .VPFeature .icon,
+.VPFeatures .items .item:nth-child(6) .VPFeature .VPImage,
+.VPFeatures .items .item:nth-child(6) .VPFeature .box > .icon {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
@@ -294,32 +405,27 @@ features:
   background: var(--vp-c-bg);
   border-radius: 10px;
   border: 1px solid var(--vp-c-divider);
-  transition: border-color 0.3s ease;
-}
-
-.demonstrates-item:hover {
-  border-color: var(--vp-c-brand-1);
 }
 
 .demonstrates-item .icon {
   font-size: 1.25rem;
-  line-height: 1;
+  flex-shrink: 0;
 }
 
 .demonstrates-item p {
-  color: var(--vp-c-text-1);
-  font-size: 0.95rem;
-  line-height: 1.5;
+  color: var(--vp-c-text-2);
+  line-height: 1.6;
   margin: 0;
 }
 
+/* Code Preview */
 .code-preview {
   margin: 4rem 0;
 }
 
 .code-preview h2 {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 600;
   text-align: center;
   margin-bottom: 0.5rem;
