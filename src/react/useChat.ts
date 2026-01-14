@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { Provider, Tool, Message } from '../types';
 import { generateId } from '../utils';
 
@@ -66,7 +66,6 @@ export function useChat(config: UseChatConfig): UseChatReturn {
         setMessages((prev) => [...prev, assistantMessage]);
         onFinish?.(assistantMessage);
 
-        // Handle tool calls if present
         if (response.toolCalls && response.toolCalls.length > 0) {
           for (const toolCall of response.toolCalls) {
             const tool = tools.find((t) => t.name === toolCall.name);
@@ -82,7 +81,6 @@ export function useChat(config: UseChatConfig): UseChatReturn {
                 };
                 setMessages((prev) => [...prev, toolMessage]);
 
-                // Continue conversation with tool result
                 await sendToProvider([...messagesToSend, assistantMessage, toolMessage]);
               } catch (toolError) {
                 console.error(`Tool ${toolCall.name} failed:`, toolError);
@@ -121,7 +119,6 @@ export function useChat(config: UseChatConfig): UseChatReturn {
 
       const messagesToSend: Message[] = [];
 
-      // Add system prompt
       if (systemPrompt) {
         messagesToSend.push({
           id: generateId('msg'),
@@ -131,7 +128,6 @@ export function useChat(config: UseChatConfig): UseChatReturn {
         });
       }
 
-      // Add history and new message
       messagesToSend.push(...messages, userMessage);
 
       setMessages((prev) => [...prev, userMessage]);
@@ -145,7 +141,6 @@ export function useChat(config: UseChatConfig): UseChatReturn {
   const reload = useCallback(() => {
     if (!lastUserMessageRef.current || isLoading) return;
 
-    // Remove last assistant message if present
     setMessages((prev) => {
       const lastMessage = prev[prev.length - 1];
       if (lastMessage?.role === 'assistant') {
@@ -154,7 +149,6 @@ export function useChat(config: UseChatConfig): UseChatReturn {
       return prev;
     });
 
-    // Resend
     const messagesToSend: Message[] = [];
 
     if (systemPrompt) {
