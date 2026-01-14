@@ -1,4 +1,3 @@
-[index.md](https://github.com/user-attachments/files/24618430/index.md)
 ---
 layout: home
 
@@ -79,13 +78,6 @@ features:
   font-weight: 600;
   margin-bottom: 1.5rem;
   color: var(--vp-c-text-1);
-}
-
-.install-tabs {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
 }
 
 .install-command {
@@ -286,7 +278,7 @@ console.log(response.content);
 <h2>Ready to Build?</h2>
 <p>Start building production-ready AI agents in minutes.</p>
 <div class="cta-buttons">
-<a href="/guide/getting-started" class="cta-button primary">Get Started →</a>
+<a href="/agentforge/guide/getting-started" class="cta-button primary">Get Started →</a>
 <a href="https://github.com/mpalmer79/agentforge" class="cta-button secondary">View Source</a>
 </div>
 </div>
