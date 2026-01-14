@@ -1,6 +1,6 @@
 {
   "name": "agentforge",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A TypeScript framework for building production-ready, tool-using AI agents. Type-safe, multi-provider, with React hooks.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -38,7 +38,14 @@
     "react",
     "hooks",
     "tools",
-    "function-calling"
+    "function-calling",
+    "streaming",
+    "middleware",
+    "production-ready",
+    "type-safe",
+    "zod",
+    "ai-agent",
+    "chatbot"
   ],
   "author": "Michael Palmer",
   "license": "MIT",
@@ -49,7 +56,7 @@
   "bugs": {
     "url": "https://github.com/mpalmer79/agentforge/issues"
   },
-  "homepage": "https://github.com/mpalmer79/agentforge#readme",
+  "homepage": "https://mpalmer79.github.io/agentforge/",
   "dependencies": {
     "zod": "^3.23.8"
   },
