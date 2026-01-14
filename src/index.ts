@@ -355,6 +355,50 @@ export type {
   CustomProviderConfig,
 } from './provider-factory';
 
+// Request Interceptors
+export {
+  InterceptorChain,
+  createLoggingInterceptor,
+  createMetricsInterceptor,
+  createContentFilterInterceptor,
+  createInjectionDetectionInterceptor,
+  createTransformInterceptor,
+  createRetryErrorInterceptor,
+  createCircuitBreakerErrorInterceptor,
+  generateRequestId,
+  createRequestContext,
+  composeRequestInterceptors,
+  composeResponseInterceptors,
+} from './interceptors';
+export type {
+  RequestContext,
+  InterceptorResult,
+  RequestInterceptor,
+  ResponseInterceptor,
+  ErrorInterceptor,
+  InterceptorChainConfig,
+} from './interceptors';
+
+// Graceful Degradation
+export {
+  DegradationManager,
+  createDegradedTool,
+  simplifyResponse,
+  createDegradedResponse,
+  executeWithHealthAwareness,
+  syncWithCircuitBreaker,
+  createDegradationManager,
+  createDegradedTools,
+} from './degradation';
+export type {
+  FeatureFlags,
+  DegradationLevel,
+  CapabilityStatus,
+  FallbackResponse,
+  FallbackStrategy,
+  HealthAwareConfig,
+} from './degradation';
+
 // Multi-Provider Orchestrator
 export {
   MultiProviderOrchestrator,
