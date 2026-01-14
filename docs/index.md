@@ -53,7 +53,6 @@ features:
   border-color: #004182 !important;
 }
 
-/* Add LinkedIn icon before text */
 .VPHero .actions .VPButton[href*="linkedin"]::before {
   content: '';
   display: inline-block;
@@ -66,15 +65,133 @@ features:
   vertical-align: middle;
 }
 
-/* Make LinkedIn button open in new tab indicator */
-.VPHero .actions a[href*="linkedin"] {
-  position: relative;
-}
-
 .home-content {
   max-width: 1152px;
   margin: 0 auto;
   padding: 0 24px;
+}
+
+/* Badges Section */
+.badges-section {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 1.5rem 0 2rem 0;
+}
+
+.badges-section img {
+  height: 24px;
+}
+
+/* Why Section - NEW */
+.why-exists {
+  margin: 3rem 0;
+  padding: 2.5rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.08) 100%);
+  border-radius: 16px;
+  border: 1px solid var(--vp-c-divider);
+  text-align: center;
+}
+
+.why-exists h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  color: var(--vp-c-text-1);
+}
+
+.why-exists p {
+  color: var(--vp-c-text-2);
+  font-size: 1.1rem;
+  line-height: 1.8;
+  max-width: 800px;
+  margin: 0 auto 1rem auto;
+}
+
+.why-exists .highlight {
+  color: var(--vp-c-brand-1);
+  font-weight: 500;
+}
+
+.project-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--vp-c-bg-soft);
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: var(--vp-c-text-2);
+}
+
+.project-status .dot {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* What This Demonstrates - NEW */
+.demonstrates-section {
+  margin: 4rem 0;
+  padding: 3rem;
+  background: var(--vp-c-bg-soft);
+  border-radius: 16px;
+  border: 1px solid var(--vp-c-divider);
+}
+
+.demonstrates-section h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.demonstrates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.demonstrates-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--vp-c-bg);
+  border-radius: 10px;
+  border: 1px solid var(--vp-c-divider);
+  transition: border-color 0.3s ease;
+}
+
+.demonstrates-item:hover {
+  border-color: var(--vp-c-brand-1);
+}
+
+.demonstrates-item .icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.demonstrates-item p {
+  color: var(--vp-c-text-1);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
 }
 
 .code-preview {
@@ -245,6 +362,60 @@ onMounted(() => {
 </script>
 
 <div class="home-content">
+
+<!-- Badges -->
+<div class="badges-section">
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" />
+  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" />
+  <img src="https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white" alt="Node.js 18+" />
+</div>
+
+<!-- Why This Exists -->
+<div class="why-exists">
+<h2>Why This Exists</h2>
+<p>
+AgentForge was built to solve a real problem: <span class="highlight">most AI agent frameworks break down when you try to ship them to production</span>.
+</p>
+<p>
+This project demonstrates how to design a type-safe, provider-agnostic, streaming-first agent system using modern TypeScript, clean architecture, and production-grade patterns.
+</p>
+<div class="project-status">
+  <span class="dot"></span>
+  Active development · Designed with production patterns · Open source
+</div>
+</div>
+
+<!-- What This Demonstrates -->
+<div class="demonstrates-section">
+<h2>What This Project Demonstrates</h2>
+<div class="demonstrates-grid">
+  <div class="demonstrates-item">
+    <span class="icon">🏗️</span>
+    <p>Designing modular, provider-agnostic architecture that scales</p>
+  </div>
+  <div class="demonstrates-item">
+    <span class="icon">🔒</span>
+    <p>Building type-safe APIs with runtime validation using Zod</p>
+  </div>
+  <div class="demonstrates-item">
+    <span class="icon">⚡</span>
+    <p>Implementing streaming systems with async iterators</p>
+  </div>
+  <div class="demonstrates-item">
+    <span class="icon">🔗</span>
+    <p>Designing middleware pipelines for extensibility</p>
+  </div>
+  <div class="demonstrates-item">
+    <span class="icon">🛡️</span>
+    <p>Production patterns: circuit breakers, retry logic, graceful degradation</p>
+  </div>
+  <div class="demonstrates-item">
+    <span class="icon">📚</span>
+    <p>Complete documentation with branding, SEO, and examples</p>
+  </div>
+</div>
+</div>
 
 <div class="code-preview">
 <h2>Simple, Powerful API</h2>
