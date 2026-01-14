@@ -37,11 +37,11 @@ export interface TokenBudget {
 class BPEApproximation implements TokenCounter {
   modelFamily: ModelFamily;
   
-  // Average characters per token for different content types
-  private readonly avgCharsPerToken: number;
-  
   // Overhead per message for chat format
   private readonly messageOverhead: number;
+  
+  // Average characters per token for different content types (used for simple estimation fallback)
+  private readonly charsPerToken: number;
 
   constructor(modelFamily: ModelFamily = 'gpt-4') {
     this.modelFamily = modelFamily;
@@ -50,19 +50,19 @@ class BPEApproximation implements TokenCounter {
     switch (modelFamily) {
       case 'gpt-4':
       case 'gpt-3.5':
-        this.avgCharsPerToken = 3.5;
+        this.charsPerToken = 3.5;
         this.messageOverhead = 4; // <|im_start|>{role}\n ... <|im_end|>
         break;
       case 'claude':
-        this.avgCharsPerToken = 3.8;
+        this.charsPerToken = 3.8;
         this.messageOverhead = 3;
         break;
       case 'gemini':
-        this.avgCharsPerToken = 4.0;
+        this.charsPerToken = 4.0;
         this.messageOverhead = 2;
         break;
       default:
-        this.avgCharsPerToken = 4.0;
+        this.charsPerToken = 4.0;
         this.messageOverhead = 4;
     }
   }
@@ -70,7 +70,12 @@ class BPEApproximation implements TokenCounter {
   count(text: string): number {
     if (!text) return 0;
     
-    // More sophisticated estimation
+    // For very short strings, use simple character-based estimation
+    if (text.length < 10) {
+      return Math.ceil(text.length / this.charsPerToken);
+    }
+    
+    // More sophisticated estimation for longer text
     let tokens = 0;
     
     // Count words (roughly 1.3 tokens per word for English)
