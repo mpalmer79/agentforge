@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <!-- Safari mask icon: solid monochrome only -->
+
+  <!-- Outer circle -->
+  <circle cx="60" cy="60" r="56" fill="black"/>
+
+  <!-- Inner cutout -->
+  <circle cx="60" cy="60" r="48" fill="white"/>
+
+  <!-- Anvil -->
+  <path
+    d="M35 70 L45 55 L75 55 L85 70 L80 72 L40 72 Z"
+    fill="black"
+  />
+
+  <!-- Hammer handle -->
+  <rect
+    x="55"
+    y="32"
+    width="10"
+    height="28"
+    rx="2"
+    fill="black"
+  />
+
+  <!-- Hammer head -->
+  <rect
+    x="48"
+    y="28"
+    width="24"
+    height="10"
+    rx="3"
+    fill="black"
+  />
+
+  <!-- Circuit lines -->
+  <path
+    d="M30 80 L30 85 L50 85"
+    stroke="black"
+    stroke-width="2"
+    fill="none"
+  />
+  <path
+    d="M90 80 L90 85 L70 85"
+    stroke="black"
+    stroke-width="2"
+    fill="none"
+  />
+  <circle cx="50" cy="85" r="2" fill="black"/>
+  <circle cx="70" cy="85" r="2" fill="black"/>
+  <path
+    d="M52 85 L68 85"
+    stroke="black"
+    stroke-width="1.5"
+    fill="none"
+  />
+</svg>
