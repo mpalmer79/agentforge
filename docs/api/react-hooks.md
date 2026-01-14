@@ -1,4 +1,3 @@
-[Uploading react-hooks.md…]()
 # React Hooks API
 
 React hooks for building chat interfaces.
@@ -6,7 +5,6 @@ React hooks for building chat interfaces.
 ## useAgent()
 
 Full-featured agent hook.
-
 ```typescript
 import { useAgent } from 'agentforge/react';
 
@@ -21,7 +19,6 @@ const {
 ```
 
 ### UseAgentConfig
-
 ```typescript
 interface UseAgentConfig {
   provider: Provider;
@@ -49,7 +46,6 @@ interface UseAgentConfig {
 ## useChat()
 
 Simplified chat hook with input management.
-
 ```typescript
 import { useChat } from 'agentforge/react';
 
@@ -65,7 +61,6 @@ const {
 ```
 
 ### UseChatConfig
-
 ```typescript
 interface UseChatConfig {
   provider: Provider;
@@ -89,7 +84,6 @@ interface UseChatConfig {
 ## useStreamingAgent()
 
 Hook with streaming support.
-
 ```typescript
 import { useStreamingAgent } from 'agentforge/react';
 
@@ -103,7 +97,6 @@ const {
 ```
 
 ### UseStreamingAgentConfig
-
 ```typescript
 interface UseStreamingAgentConfig {
   provider: Provider;
@@ -127,7 +120,6 @@ interface UseStreamingAgentConfig {
 ## AgentProvider
 
 Context provider for sharing configuration.
-
 ```tsx
 import { AgentProvider } from 'agentforge/react';
 
@@ -143,9 +135,14 @@ import { AgentProvider } from 'agentforge/react';
 ## useAgentContext()
 
 Access provider context:
-
 ```typescript
 import { useAgentContext } from 'agentforge/react';
 
 const { provider, tools, systemPrompt } = useAgentContext();
 ```
+
+## Next Steps
+
+- [Streaming Guide](/guide/streaming) - Real-time streaming in React
+- [React Integration Guide](/guide/react-integration) - Full React guide
+- [Customer Support Example](/examples/customer-support) - Full chat implementations
