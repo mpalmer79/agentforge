@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { RequestBatcher, RequestDeduplicator, RateLimitedQueue } from '../../src/batch';
 import type { Provider, CompletionRequest } from '../../src/types';
 
@@ -137,12 +137,25 @@ describe('RateLimitedQueue', () => {
     vi.useFakeTimers();
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   const createMockProvider = (): Provider => ({
     name: 'mock',
     complete: vi.fn().mockResolvedValue({
       id: 'resp',
       content: 'Response',
       finishReason: 'stop',
+    }),
+    stream: vi.fn(),
+  });
+
+  const createSlowMockProvider = (): Provider => ({
+    name: 'mock',
+    complete: vi.fn().mockImplementation(async () => {
+      await new Promise(r => setTimeout(r, 500));
+      return { id: 'resp', content: 'Response', finishReason: 'stop' };
     }),
     stream: vi.fn(),
   });
@@ -161,13 +174,45 @@ describe('RateLimitedQueue', () => {
     expect(queue.length).toBeGreaterThanOrEqual(0);
   });
 
-  it('should clear queue and reject pending', async () => {
-    const provider = createMockProvider();
+  it('should clear queue and reject pending requests', async () => {
+    // Use a slow provider so the first request takes time
+    const provider = createSlowMockProvider();
     const queue = new RateLimitedQueue(provider, { requestsPerSecond: 1 });
 
-    const promise = queue.add(createRequest('test'));
+    // Add first request - this will start processing
+    const promise1 = queue.add(createRequest('first'));
+    
+    // Add second request - this should be queued (rate limited)
+    const promise2 = queue.add(createRequest('second'));
+
+    // The second request should be in the queue
+    expect(queue.length).toBeGreaterThanOrEqual(1);
+
+    // Clear the queue - this should reject the queued (second) request
     queue.clear();
 
-    await expect(promise).rejects.toThrow(/cleared/);
+    // The second (queued) request should reject
+    await expect(promise2).rejects.toThrow(/cleared/);
+
+    // Advance timers to let the first request complete
+    await vi.advanceTimersByTimeAsync(600);
+
+    // First request should resolve (it was already processing)
+    await expect(promise1).resolves.toBeDefined();
+  });
+
+  it('should process requests at the specified rate', async () => {
+    const provider = createMockProvider();
+    const queue = new RateLimitedQueue(provider, { requestsPerSecond: 2 });
+
+    const promise1 = queue.add(createRequest('msg1'));
+    const promise2 = queue.add(createRequest('msg2'));
+
+    // Advance time to allow processing
+    await vi.advanceTimersByTimeAsync(1000);
+
+    await Promise.all([promise1, promise2]);
+
+    expect(provider.complete).toHaveBeenCalledTimes(2);
   });
 });
