@@ -241,8 +241,8 @@ export type {
   Metric, 
   MetricUnit, 
   TelemetryEvent, 
-  LogEntry, 
-  TelemetryHooks 
+  TelemetryHooks,
+  LogEntry as TelemetryLogEntry,
 } from './telemetry';
 
 // Resilience Patterns
@@ -398,41 +398,3 @@ export type {
   FallbackStrategy,
   HealthAwareConfig,
 } from './degradation';
-
-// Multi-Provider Orchestrator
-export {
-  MultiProviderOrchestrator,
-  createOrchestrator,
-  createPrimaryFallback,
-} from './orchestrator';
-export type {
-  ProviderEntry,
-  ProviderCapabilities,
-  RoutingStrategy,
-  OrchestratorConfig,
-} from './orchestrator';
-
-// Structured Logging
-export {
-  Logger,
-  ConsoleTransport,
-  BufferTransport,
-  initLogger,
-  getLogger,
-  createAgentLogger,
-} from './logger';
-export type {
-  LogLevel,
-  LogEntry,
-  LoggerConfig,
-  LogTransport,
-} from './logger';
-
-// Additional Middleware
-export {
-  createTimeoutMiddleware,
-  createValidationMiddleware,
-  createCostTrackingMiddleware,
-  createContentFilterMiddleware,
-  createMetricsMiddleware,
-} from './middleware';
