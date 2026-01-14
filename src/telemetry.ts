@@ -1,4 +1,4 @@
-import type { CompletionRequest, CompletionResponse, ToolCall, ToolResult, Message } from './types';
+import type { CompletionRequest, CompletionResponse, ToolResult } from './types';
 
 // ============================================
 // Telemetry Types
