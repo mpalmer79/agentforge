@@ -1,0 +1,14 @@
+{
+  "name": "agentforge-docs",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "^1.3.4",
+    "vue": "^3.4.38"
+  }
+}
