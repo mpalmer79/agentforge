@@ -14,8 +14,8 @@ import { composeMiddleware } from './middleware';
 import { generateId } from './utils';
 import { getTelemetry, TelemetryCollector } from './telemetry';
 import { CircuitBreaker, RequestDeduplicator, Bulkhead, retryWithBackoff, withTimeout } from './resilience';
-import { getTokenCounter, calculateBudget, truncateToTokens } from './tokenizer';
-import { sanitizeCompletionResponse, validateCompletionResponse } from './schema';
+import { getTokenCounter, calculateBudget } from './tokenizer';
+import { sanitizeCompletionResponse } from './schema';
 import { ConversationManager } from './persistence';
 
 // ============================================
