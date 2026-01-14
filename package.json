@@ -1,0 +1,74 @@
+{
+  "name": "agentforge",
+  "version": "0.1.0",
+  "description": "A TypeScript framework for building production-ready, tool-using AI agents. Type-safe, multi-provider, with React hooks.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./react": {
+      "import": "./dist/react/index.mjs",
+      "require": "./dist/react/index.js",
+      "types": "./dist/react/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/react/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts src/react/index.ts --format cjs,esm --dts --watch",
+    "lint": "eslint src/",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "llm",
+    "openai",
+    "anthropic",
+    "claude",
+    "gpt",
+    "typescript",
+    "react",
+    "hooks",
+    "tools",
+    "function-calling"
+  ],
+  "author": "Michael Palmer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mpalmer79/agentforge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mpalmer79/agentforge/issues"
+  },
+  "homepage": "https://github.com/mpalmer79/agentforge#readme",
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "eslint": "^9.4.0",
+    "tsup": "^8.1.0",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
