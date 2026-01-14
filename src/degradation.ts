@@ -9,7 +9,7 @@
  * - Progressive enhancement/degradation
  */
 
-import type { Tool, ToolResult, Message, CompletionResponse } from './types';
+import type { Tool, Message, CompletionResponse } from './types';
 import { getLogger } from './logging';
 import { getTelemetry } from './telemetry';
 
