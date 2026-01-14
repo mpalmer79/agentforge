@@ -94,7 +94,7 @@ export interface CompletionResponse {
     completionTokens: number;
     totalTokens: number;
   };
-  finishReason: 'stop' | 'tool_calls' | 'length' | 'error';
+  finishReason: 'stop' | 'tool_calls' | 'length' | 'error' | 'content_filter';
 }
 
 export interface StreamChunk {
