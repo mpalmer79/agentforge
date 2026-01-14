@@ -14,7 +14,138 @@ export {
 export { BaseProvider, OpenAIProvider, AnthropicProvider } from './providers';
 export type { OpenAIProviderConfig, AnthropicProviderConfig } from './providers';
 
-// Type exports
+// Error exports
+export {
+  ErrorCode,
+  AgentForgeError,
+  ProviderError,
+  ToolExecutionError,
+  ValidationError,
+  AgentExecutionError,
+  ConfigurationError,
+  isAgentForgeError,
+  isRetryableError,
+  wrapError,
+  createErrorHandler,
+} from './errors';
+export type { ErrorContext } from './errors';
+
+// Validation exports
+export {
+  validateProviderConfig,
+  validateMemoryConfig,
+  validateMessage,
+  validateMessages,
+  validateRange,
+  validatePattern,
+  validateOneOf,
+  validateNonEmpty,
+  validateDefined,
+  sanitizeToolName,
+  sanitizeContent,
+  safeParseJSON,
+  safeStringify,
+  parseNumber,
+  parseBoolean,
+} from './validation';
+
+// Result type exports
+export {
+  ok,
+  err,
+  errFrom,
+  isOk,
+  isErr,
+  unwrap,
+  unwrapOr,
+  unwrapOrElse,
+  map,
+  mapErr,
+  flatMap,
+  combine,
+  tryCatch,
+  tryCatchAsync,
+  match,
+  fromPromise,
+  toPromise,
+  collectAsync,
+  collectAsyncParallel,
+} from './result';
+export type { Ok, Err, Result } from './result';
+
+// Branded type exports
+export {
+  messageId,
+  toolCallId,
+  responseId,
+  errorId,
+  sessionId,
+  nonNegativeInteger,
+  positiveInteger,
+  percentage,
+  temperature,
+  tokenCount,
+  timestamp,
+  nonEmptyString,
+  toolName,
+  apiKey,
+  modelId,
+  isMessageId,
+  isToolCallId,
+  isNonNegativeInteger,
+  isPositiveInteger,
+  isTemperature,
+  isToolName,
+} from './types/branded';
+export type {
+  MessageId,
+  ToolCallId,
+  ResponseId,
+  ErrorId,
+  SessionId,
+  NonNegativeInteger,
+  PositiveInteger,
+  Percentage,
+  Temperature,
+  TokenCount,
+  Timestamp,
+  NonEmptyString,
+  ToolName,
+  ApiKey,
+  ModelId,
+} from './types/branded';
+
+// Type guard exports
+export {
+  isUserMessage,
+  isAssistantMessage,
+  isSystemMessage,
+  isToolMessage,
+  hasToolCalls,
+  isMessage,
+  isToolCall,
+  isToolResult,
+  isProvider,
+  isTool,
+  isCompletionResponse,
+  isStreamChunk,
+  isMessageArray,
+  isToolCallArray,
+  isToolArray,
+  isObject,
+  isNonEmptyString,
+  isPositiveNumber,
+  isNonNegativeNumber,
+  isDefined,
+  isNullish,
+  assertMessage,
+  assertProvider,
+  assertTool,
+  assertDefined,
+  assertNonEmptyString,
+} from './types/guards';
+
+// Core type exports
 export type {
   Message,
   MessageRole,
@@ -37,14 +168,8 @@ export type {
   MemoryStrategy,
   Middleware,
   MiddlewareContext,
-} from './types';
-
-// Error exports
-export {
-  AgentForgeError,
-  ProviderError,
-  ToolExecutionError,
-  ValidationError,
+  DeepPartial,
+  Awaitable,
 } from './types';
 
 // Utility exports
@@ -55,4 +180,8 @@ export {
   deepMerge,
   truncate,
   estimateTokens,
+  createDeferred,
+  isPlainObject,
+  omit,
+  pick,
 } from './utils';
