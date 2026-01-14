@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import type { Provider, Tool, Middleware, MemoryConfig } from '../types';
 
 export interface AgentProviderConfig {
