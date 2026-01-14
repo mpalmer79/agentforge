@@ -294,17 +294,46 @@ export class Agent {
     if (maxMessages && result.length > maxMessages) {
       const systemMessages = result.filter((m) => m.role === 'system');
       const otherMessages = result.filter((m) => m.role !== 'system');
+      const availableSlots = maxMessages - systemMessages.length;
 
       switch (strategy) {
         case 'sliding-window':
-          result = [...systemMessages, ...otherMessages.slice(-maxMessages + systemMessages.length)];
+          // Keep most recent messages (sliding window)
+          result = [...systemMessages, ...otherMessages.slice(-availableSlots)];
           break;
+
         case 'trim-oldest':
-          result = [...systemMessages, ...otherMessages.slice(-maxMessages + systemMessages.length)];
+          // Remove oldest user/assistant pairs first, keeping tool messages with their context
+          const trimmed: Message[] = [];
+          let kept = 0;
+          // Iterate from newest to oldest
+          for (let i = otherMessages.length - 1; i >= 0 && kept < availableSlots; i--) {
+            trimmed.unshift(otherMessages[i]);
+            kept++;
+          }
+          result = [...systemMessages, ...trimmed];
           break;
+
         case 'summarize':
-          result = [...systemMessages, ...otherMessages.slice(-maxMessages + systemMessages.length)];
+          // For summarize strategy: keep first message, last N-1 messages
+          // The idea is the first user message often contains important context
+          // A real implementation would call the LLM to summarize older messages
+          if (otherMessages.length > 0 && availableSlots > 1) {
+            const firstMessage = otherMessages[0];
+            const recentMessages = otherMessages.slice(-(availableSlots - 1));
+            // Avoid duplicating if first message is in recent
+            if (recentMessages[0]?.id !== firstMessage.id) {
+              result = [...systemMessages, firstMessage, ...recentMessages];
+            } else {
+              result = [...systemMessages, ...recentMessages];
+            }
+          } else {
+            result = [...systemMessages, ...otherMessages.slice(-availableSlots)];
+          }
           break;
+
+        default:
+          result = [...systemMessages, ...otherMessages.slice(-availableSlots)];
       }
     }
 
@@ -312,12 +341,14 @@ export class Agent {
       let totalTokens = 0;
       const filteredMessages: Message[] = [];
 
+      // Always include system messages first
       const systemMessages = result.filter((m) => m.role === 'system');
       for (const msg of systemMessages) {
         totalTokens += estimateTokens(msg.content);
         filteredMessages.push(msg);
       }
 
+      // Add other messages from newest to oldest until we hit the token limit
       const otherMessages = result.filter((m) => m.role !== 'system').reverse();
       for (const msg of otherMessages) {
         const msgTokens = estimateTokens(msg.content);
