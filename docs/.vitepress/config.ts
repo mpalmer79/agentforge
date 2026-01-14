@@ -1,5 +1,8 @@
 import { defineConfig } from 'vitepress'
 
+const SITE_URL = 'https://mpalmer79.github.io/agentforge'
+const OG_IMAGE_URL = `${SITE_URL}/og.png`
+
 export default defineConfig({
   title: 'AgentForge',
   description:
@@ -24,6 +27,7 @@ export default defineConfig({
 
     // Open Graph
     ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:url', content: SITE_URL }],
     ['meta', { property: 'og:title', content: 'AgentForge - TypeScript AI Agent Framework' }],
     [
       'meta',
@@ -33,11 +37,25 @@ export default defineConfig({
           'Build production-ready AI agents with type-safe tools, streaming responses, and multi-provider support'
       }
     ],
-    ['meta', { property: 'og:image', content: '/og.png' }],
+
+    // IMPORTANT: LinkedIn is much more reliable with absolute OG image URLs + explicit dimensions
+    ['meta', { property: 'og:image', content: OG_IMAGE_URL }],
+    ['meta', { property: 'og:image:type', content: 'image/png' }],
+    ['meta', { property: 'og:image:width', content: '1200' }],
+    ['meta', { property: 'og:image:height', content: '630' }],
 
     // Twitter / X
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-    ['meta', { name: 'twitter:image', content: '/og.png' }]
+    ['meta', { name: 'twitter:title', content: 'AgentForge - TypeScript AI Agent Framework' }],
+    [
+      'meta',
+      {
+        name: 'twitter:description',
+        content:
+          'Build production-ready AI agents with type-safe tools, streaming responses, and multi-provider support'
+      }
+    ],
+    ['meta', { name: 'twitter:image', content: OG_IMAGE_URL }]
   ],
 
   themeConfig: {
