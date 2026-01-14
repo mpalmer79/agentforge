@@ -14,6 +14,7 @@ export default defineConfig({
     ['link', { rel: 'icon', type: 'image/png', sizes: '152x152', href: '/icon-152.png' }],
     ['link', { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }],
     ['link', { rel: 'icon', type: 'image/png', sizes: '192x192', href: '/icon-192.png' }],
+    ['link', { rel: 'icon', type: 'image/png', sizes: '512x512', href: '/icon-512.png' }],
 
     // Safari pinned tab
     ['link', { rel: 'mask-icon', href: '/mask-icon.svg', color: '#6366f1' }],
