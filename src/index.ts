@@ -185,3 +185,38 @@ export {
   omit,
   pick,
 } from './utils';
+
+// Event system exports
+export {
+  EventEmitter,
+  globalEventBus,
+  waitForEvent,
+  eventIterator,
+} from './events';
+export type {
+  AgentEvents,
+  EventName,
+  EventPayload,
+  EventListener,
+} from './events';
+
+// Plugin system exports
+export {
+  PluginManager,
+  definePlugin,
+  analyticsPlugin,
+  telemetryPlugin,
+} from './plugins';
+export type {
+  Plugin,
+  PluginMetadata,
+  PluginContext,
+  PluginLogger,
+} from './plugins';
+
+// Batch/Performance exports
+export {
+  RequestBatcher,
+  RequestDeduplicator,
+  RateLimitedQueue,
+} from './batch';
