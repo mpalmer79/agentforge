@@ -4,14 +4,14 @@ export default defineConfig({
   title: 'AgentForge',
   description: 'Production-ready TypeScript framework for building AI agents with tools, streaming, and multi-provider support',
   
+  base: '/agentforge/',
+  
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/agentforge/logo.svg' }],
     ['meta', { name: 'theme-color', content: '#6366f1' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: 'AgentForge - TypeScript AI Agent Framework' }],
     ['meta', { property: 'og:description', content: 'Build production-ready AI agents with type-safe tools, streaming responses, and multi-provider support' }],
-    ['meta', { property: 'og:image', content: 'https://agentforge.dev/og-image.png' }],
-    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
   ],
 
   themeConfig: {
@@ -99,13 +99,12 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/mpalmer79/agentforge' },
-      { icon: 'npm', link: 'https://www.npmjs.com/package/agentforge' }
+      { icon: 'github', link: 'https://github.com/mpalmer79/agentforge' }
     ],
 
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2024 Michael Palmer'
+      copyright: 'Copyright © 2026 Michael Palmer'
     },
 
     search: {
@@ -115,25 +114,10 @@ export default defineConfig({
     editLink: {
       pattern: 'https://github.com/mpalmer79/agentforge/edit/main/docs/:path',
       text: 'Edit this page on GitHub'
-    },
-
-    lastUpdated: {
-      text: 'Updated at',
-      formatOptions: {
-        dateStyle: 'medium'
-      }
     }
   },
 
   markdown: {
-    theme: {
-      light: 'github-light',
-      dark: 'github-dark'
-    },
     lineNumbers: true
-  },
-
-  sitemap: {
-    hostname: 'https://mpalmer79.github.io/agentforge/'
   }
 })
