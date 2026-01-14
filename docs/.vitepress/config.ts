@@ -8,13 +8,14 @@ export default defineConfig({
   base: '/agentforge/',
 
   head: [
-    // Favicons / icons (use base-relative paths: VitePress will prefix with base automatically)
+    // Favicons / icons (base-relative paths; VitePress prefixes with base automatically)
     ['link', { rel: 'icon', href: '/favicon.ico' }],
     ['link', { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/icon-32.png' }],
     ['link', { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }],
-
-    // Optional PWA-style icon (you already generated it)
     ['link', { rel: 'icon', type: 'image/png', sizes: '192x192', href: '/icon-192.png' }],
+
+    // Safari pinned tab (mask icon)
+    ['link', { rel: 'mask-icon', href: '/mask-icon.svg', color: '#6366f1' }],
 
     // Theme + social
     ['meta', { name: 'theme-color', content: '#6366f1' }],
@@ -29,14 +30,14 @@ export default defineConfig({
       }
     ],
 
-    // Optional but recommended: add these once you create docs/public/og.png (1200x630)
+    // Optional (enable once you add docs/public/og.png)
     // ['meta', { property: 'og:image', content: '/og.png' }],
     // ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     // ['meta', { name: 'twitter:image', content: '/og.png' }],
   ],
 
   themeConfig: {
-    // IMPORTANT: base-relative so it works in GitHub Pages subpath deploys
+    // Base-relative logo for GitHub Pages subpath deploys
     logo: '/logo.svg',
 
     nav: [
