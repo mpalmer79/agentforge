@@ -99,4 +99,3 @@
   <!-- Connection to provider -->
   <line x1="200" y1="270" x2="200" y2="355" stroke="url(#purpleGrad)" stroke-width="2" stroke-dasharray="6,6" opacity="0.4"/>
 </svg>
-```
