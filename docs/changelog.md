@@ -118,7 +118,7 @@ AgentForge v1.0.0 is here! A production-ready TypeScript framework for building 
 
 ---
 
-## [1.1.0] - 2025-01-15
+## [1.1.0] - 2025-01-15 <Badge type="tip" text="Completed" />
 
 ### 🚀 New Features Release
 
