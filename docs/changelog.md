@@ -118,33 +118,82 @@ AgentForge v1.0.0 is here! A production-ready TypeScript framework for building 
 
 ---
 
+## [1.1.0] - 2025-01-15
+
+### 🚀 New Features Release
+
+Major expansion of AgentForge with new providers, memory strategies, and UI components.
+
+### New Providers
+
+#### Google Gemini
+- **GeminiProvider** - Full support for Gemini Pro, Gemini 1.5 Pro, and Gemini 1.5 Flash
+- Native function calling support
+- System instruction handling
+- Streaming with Server-Sent Events
+
+#### Cohere
+- **CohereProvider** - Support for Command, Command-R, and Command-R+ models
+- Tool/function calling support
+- Preamble-based system messages
+- NDJSON streaming
+
+#### Together AI
+- **TogetherProvider** - Access to 100+ open-source models
+- **TOGETHER_MODELS** - Pre-configured model constants for popular models
+- Support for Llama 3.1, Mixtral, Mistral, DeepSeek, Qwen, and more
+- Full OpenAI-compatible API
+
+### Memory Summarization Strategies
+
+New intelligent memory management for long conversations:
+
+- **createSlidingWindowSummarizer** - Simple sliding window with optional summarization of dropped messages
+- **createSemanticCompressionSummarizer** - LLM-powered compression preserving key information
+- **createHierarchicalSummarizer** - Multi-level summaries (recent detail, mid-term context, long-term summary)
+- **createImportanceBasedSummarizer** - Retain messages based on importance scoring
+- **createMemorySummarizer** - Factory function for easy strategy selection
+
+### Enhanced React Components
+
+Production-ready UI components for building chat interfaces:
+
+- **ChatWindow** - Complete chat interface with input, auto-scroll, streaming support
+- **MessageList** - Scrollable message display with custom renderers
+- **MessageBubble** - Individual message rendering with code block support
+- **ToolStatus** - Tool execution visualization with progress tracking
+- **TypingIndicator** - Animated loading/streaming indicator
+- **ChatErrorBoundary** - Error boundary for graceful error handling
+- **Avatar** - Configurable avatar component for messages
+
+---
+
 ## Roadmap
-
-### [1.1.0] - Planned
-
-- [ ] Memory summarization strategies (sliding window, semantic compression)
-- [ ] Additional provider support (Google Gemini, Cohere, Together AI)
-- [ ] WebSocket streaming transport
-- [ ] Enhanced React components (ChatWindow, MessageList, ToolStatus)
-- [ ] Conversation branching and forking
-- [ ] Tool dependency management
 
 ### [1.2.0] - Planned
 
+- [ ] WebSocket streaming transport
+- [ ] Conversation branching and forking
+- [ ] Tool dependency management
 - [ ] Multi-agent orchestration patterns
 - [ ] Agent-to-agent communication
 - [ ] Workflow engine for complex task pipelines
-- [ ] Built-in observability dashboard
-- [ ] Edge runtime support (Cloudflare Workers, Vercel Edge)
-- [ ] Vector store integrations (Pinecone, Weaviate, Chroma)
 
 ### [1.3.0] - Planned
 
+- [ ] Built-in observability dashboard
+- [ ] Edge runtime support (Cloudflare Workers, Vercel Edge)
+- [ ] Vector store integrations (Pinecone, Weaviate, Chroma)
 - [ ] Fine-tuning integration utilities
 - [ ] Prompt versioning and A/B testing
+
+### [1.4.0] - Planned
+
 - [ ] Cost tracking and budgeting
 - [ ] Compliance logging (audit trails)
 - [ ] Multi-modal support (images, audio)
+- [ ] Advanced caching strategies
+- [ ] Conversation analytics
 
 ---
 
