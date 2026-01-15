@@ -177,54 +177,6 @@ export interface Middleware {
 }
 
 // ============================================
-// Error Types
-// ============================================
-
-export class AgentForgeError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public cause?: Error
-  ) {
-    super(message);
-    this.name = 'AgentForgeError';
-  }
-}
-
-export class ProviderError extends AgentForgeError {
-  constructor(
-    message: string,
-    public statusCode?: number,
-    cause?: Error
-  ) {
-    super(message, 'PROVIDER_ERROR', cause);
-    this.name = 'ProviderError';
-  }
-}
-
-export class ToolExecutionError extends AgentForgeError {
-  constructor(
-    message: string,
-    public toolName: string,
-    cause?: Error
-  ) {
-    super(message, 'TOOL_EXECUTION_ERROR', cause);
-    this.name = 'ToolExecutionError';
-  }
-}
-
-export class ValidationError extends AgentForgeError {
-  constructor(
-    message: string,
-    public field: string,
-    cause?: Error
-  ) {
-    super(message, 'VALIDATION_ERROR', cause);
-    this.name = 'ValidationError';
-  }
-}
-
-// ============================================
 // Utility Types
 // ============================================
 
