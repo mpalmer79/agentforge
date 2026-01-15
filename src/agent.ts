@@ -742,7 +742,12 @@ export class Agent {
       const duration = Date.now() - startTime;
       this.telemetry.trackProviderResponse(
         this.provider.name,
-        { content: fullContent, toolCalls },
+        {
+          id: generateId('stream-resp'),
+          content: fullContent,
+          toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+          finishReason: toolCalls.length > 0 ? 'tool_calls' : 'stop',
+        },
         duration
       );
       this.telemetry.recordMetric('agent.stream.chunks', chunks.length, 'count');
