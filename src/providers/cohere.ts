@@ -114,6 +114,7 @@ export class CohereProvider extends BaseProvider {
     return {
       Authorization: `Bearer ${this.apiKey}`,
       'X-Client-Name': 'agentforge',
+      'X-API-Version': this.apiVersion,
     };
   }
 
