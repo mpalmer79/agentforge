@@ -174,7 +174,7 @@ describe('truncateToTokens', () => {
   it('should handle smart truncation by sentences', () => {
     const text = 'First sentence is important. Second sentence is also good. Third sentence has more info. Fourth continues. Fifth is last.';
     const result = truncateToTokens(text, {
-      maxTokens: 30,
+      maxTokens: 15,
       strategy: 'smart',
     });
 
