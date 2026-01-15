@@ -20,7 +20,7 @@
   "scripts": {
     "build": "tsup src/index.ts src/react/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts src/react/index.ts --format cjs,esm --dts --watch",
-    "lint": "eslint src/ tests/ || true",
+    "lint": "eslint src/ tests/",
     "lint:fix": "eslint src/ tests/ --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\"",
