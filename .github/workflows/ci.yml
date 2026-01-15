@@ -7,8 +7,37 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  quality:
+    name: Code Quality
     runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run format:check
+        continue-on-error: true  # Warning only until codebase is formatted
+
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true  # Warning only until lint issues are fixed
+
+      - name: Type check
+        run: npm run typecheck
+
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    needs: quality
 
     strategy:
       matrix:
@@ -21,13 +50,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
-
-      - name: Run linter
-        run: npm run lint
-        continue-on-error: true
+        run: npm ci
 
       - name: Build
         run: npm run build
@@ -36,6 +62,7 @@ jobs:
         run: npm test
 
   publish-dry-run:
+    name: Publish Dry Run
     runs-on: ubuntu-latest
     needs: build
 
@@ -46,9 +73,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build
         run: npm run build
