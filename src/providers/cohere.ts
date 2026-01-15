@@ -128,12 +128,10 @@ export class CohereProvider extends BaseProvider {
 
   async complete(request: CompletionRequest): Promise<CompletionResponse> {
     const body = this.buildRequestBody(request);
-
     const response = await this.fetch<CohereResponse>('/chat', {
       method: 'POST',
       body: JSON.stringify(body),
     });
-
     return this.parseResponse(response);
   }
 
@@ -143,7 +141,7 @@ export class CohereProvider extends BaseProvider {
       stream: true,
     };
 
-    let accumulatedText = '';
+    let _accumulatedText = '';
     let toolCalls: Array<{ name: string; parameters: Record<string, unknown> }> = [];
 
     for await (const data of this.fetchStreamCohere('/chat', {
@@ -162,7 +160,7 @@ export class CohereProvider extends BaseProvider {
           case 'text-generation':
             if (event.text) {
               streamChunk.delta.content = event.text;
-              accumulatedText += event.text;
+              _accumulatedText += event.text;
             }
             break;
 
