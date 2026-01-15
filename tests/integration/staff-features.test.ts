@@ -509,7 +509,8 @@ describe('End-to-End Resilience', () => {
       async complete() {
         attempt++;
         if (attempt <= 2) {
-          throw new Error(`Transient failure ${attempt}`);
+          // Use "timeout" in error message to trigger retry logic
+          throw new Error(`Request timeout on attempt ${attempt}`);
         }
         return { id: 'resp', content: 'Success on retry', finishReason: 'stop' };
       },
@@ -521,11 +522,6 @@ describe('End-to-End Resilience', () => {
       telemetry,
       circuitBreaker: {
         enabled: false, // Disable circuit breaker for this test
-      },
-      retry: {
-        maxRetries: 3, // Allow retries to eventually succeed
-        initialDelayMs: 10,
-        maxDelayMs: 50,
       },
     });
 
