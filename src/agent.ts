@@ -44,6 +44,12 @@ export interface ExtendedAgentConfig extends AgentConfig {
     requestMs?: number;
     toolExecutionMs?: number;
   };
+  /** Retry settings */
+  retry?: {
+    maxRetries?: number;
+    baseDelayMs?: number;
+    maxDelayMs?: number;
+  };
   /** Conversation persistence */
   persistence?: {
     manager?: ConversationManager;
@@ -94,6 +100,7 @@ export class Agent {
   private requestTimeoutMs: number;
   private toolTimeoutMs: number;
   private tokenBudgetConfig: ExtendedAgentConfig['tokenBudget'];
+  private retryConfig: ExtendedAgentConfig['retry'];
 
   constructor(config: ExtendedAgentConfig) {
     this.provider = config.provider;
@@ -140,6 +147,7 @@ export class Agent {
     this.requestTimeoutMs = config.timeouts?.requestMs ?? 60000;
     this.toolTimeoutMs = config.timeouts?.toolExecutionMs ?? 30000;
     this.tokenBudgetConfig = config.tokenBudget;
+    this.retryConfig = config.retry;
   }
 
   async run(input: string | Message[], options?: { signal?: AbortSignal }): Promise<AgentResponse> {
@@ -394,8 +402,9 @@ export class Agent {
 
       // Apply retry with backoff
       const response = await retryWithBackoff(callFn, {
-        maxRetries: 3,
-        baseDelayMs: 1000,
+        maxRetries: this.retryConfig?.maxRetries ?? 3,
+        baseDelayMs: this.retryConfig?.baseDelayMs ?? 1000,
+        maxDelayMs: this.retryConfig?.maxDelayMs ?? 30000,
         onRetry: (error, attempt, delay) => {
           this.telemetry.warn('Retrying provider call', {
             provider: this.provider.name,
