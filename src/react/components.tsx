@@ -511,7 +511,7 @@ export function MessageBubble({
     >
       <div style={{ whiteSpace: 'pre-wrap' }}>
         {formatContent(message.content)}
-        {message.metadata?.streaming && (
+        {(message.metadata?.streaming as boolean) && (
           <span style={{ opacity: 0.5 }}>▋</span>
         )}
       </div>
