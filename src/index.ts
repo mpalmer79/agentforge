@@ -12,8 +12,24 @@ export {
 } from './middleware';
 
 // Provider exports
-export { BaseProvider, OpenAIProvider, AnthropicProvider } from './providers';
-export type { OpenAIProviderConfig, AnthropicProviderConfig } from './providers';
+export { 
+  BaseProvider, 
+  OpenAIProvider, 
+  AnthropicProvider,
+  // v1.1.0 - New providers
+  GeminiProvider,
+  CohereProvider,
+  TogetherProvider,
+  TOGETHER_MODELS,
+} from './providers';
+export type { 
+  OpenAIProviderConfig, 
+  AnthropicProviderConfig,
+  // v1.1.0 - New provider configs
+  GeminiProviderConfig,
+  CohereProviderConfig,
+  TogetherProviderConfig,
+} from './providers';
 
 // Error exports
 export {
@@ -398,3 +414,24 @@ export type {
   FallbackStrategy,
   HealthAwareConfig,
 } from './degradation';
+
+// ============================================
+// v1.1.0 ADDITIONS
+// ============================================
+
+// Memory Summarization Strategies
+export {
+  createSlidingWindowSummarizer,
+  createSemanticCompressionSummarizer,
+  createHierarchicalSummarizer,
+  createImportanceBasedSummarizer,
+  createMemorySummarizer,
+  DEFAULT_SUMMARIZATION_CONFIG,
+} from './memory-summarization';
+export type {
+  SummarizationConfig,
+  SummarizationResult,
+  SummarizationStrategy,
+  MemorySummarizer,
+  MessageImportance,
+} from './memory-summarization';
