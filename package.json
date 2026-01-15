@@ -1,6 +1,6 @@
 {
   "name": "agentforge",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A TypeScript framework for building production-ready, tool-using AI agents. Type-safe, multi-provider, with React hooks.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -34,6 +34,11 @@
     "anthropic",
     "claude",
     "gpt",
+    "gemini",
+    "cohere",
+    "together-ai",
+    "llama",
+    "mistral",
     "typescript",
     "react",
     "hooks",
@@ -45,7 +50,9 @@
     "type-safe",
     "zod",
     "ai-agent",
-    "chatbot"
+    "chatbot",
+    "memory-management",
+    "conversation"
   ],
   "author": "Michael Palmer",
   "license": "MIT",
