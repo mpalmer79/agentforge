@@ -250,6 +250,14 @@ const defaultStyles = {
 };
 
 // ============================================
+// Helper to check if tool succeeded
+// ============================================
+
+function isToolSuccess(result: ToolResult): boolean {
+  return result.error === undefined || result.error === null;
+}
+
+// ============================================
 // ChatWindow Component
 // ============================================
 
@@ -316,12 +324,13 @@ export const ChatWindow = forwardRef<ChatWindowRef, ChatWindowProps>(
     };
 
     // Build display messages including streaming
-    const displayMessages = [...messages];
+    const displayMessages: Message[] = [...messages];
     if (streamingContent) {
       displayMessages.push({
         id: 'streaming',
         role: 'assistant',
         content: streamingContent,
+        timestamp: Date.now(),
         metadata: { streaming: true },
       });
     }
@@ -342,9 +351,13 @@ export const ChatWindow = forwardRef<ChatWindowRef, ChatWindowProps>(
 
           {pendingToolCalls.length > 0 && (
             renderToolStatus ? (
-              pendingToolCalls.map(tc => 
-                renderToolStatus(tc, toolResults.find(r => r.toolCallId === tc.id))
-              )
+              <React.Fragment>
+                {pendingToolCalls.map(tc => 
+                  <React.Fragment key={tc.id}>
+                    {renderToolStatus(tc, toolResults.find(r => r.toolCallId === tc.id))}
+                  </React.Fragment>
+                )}
+              </React.Fragment>
             ) : (
               <ToolStatus
                 toolCalls={pendingToolCalls}
@@ -404,7 +417,7 @@ export function MessageList({
   showTimestamps = false,
   className,
   style,
-}: MessageListProps) {
+}: MessageListProps): React.ReactElement {
   return (
     <div className={className} style={style}>
       {messages.map((message, index) =>
@@ -433,7 +446,7 @@ export function MessageBubble({
   showTimestamp = false,
   className,
   style,
-}: MessageBubbleProps) {
+}: MessageBubbleProps): React.ReactElement {
   const getBubbleStyle = (): CSSProperties => {
     const base = { ...defaultStyles.messageBubble };
 
@@ -451,35 +464,39 @@ export function MessageBubble({
     }
   };
 
-  const formatContent = (content: string): ReactNode => {
+  const formatContent = (content: string): React.ReactElement => {
     // Handle code blocks
     if (content.includes('```')) {
       const parts = content.split(/(```[\s\S]*?```)/g);
-      return parts.map((part, i) => {
-        if (part.startsWith('```')) {
-          const code = part.replace(/```\w*\n?/g, '').trim();
-          return (
-            <pre
-              key={i}
-              style={{
-                backgroundColor: '#1f2937',
-                color: '#e5e7eb',
-                padding: '8px 12px',
-                borderRadius: '4px',
-                overflow: 'auto',
-                fontSize: '12px',
-                margin: '8px 0',
-              }}
-            >
-              <code>{code}</code>
-            </pre>
-          );
-        }
-        return <span key={i}>{part}</span>;
-      });
+      return (
+        <React.Fragment>
+          {parts.map((part, i) => {
+            if (part.startsWith('```')) {
+              const code = part.replace(/```\w*\n?/g, '').trim();
+              return (
+                <pre
+                  key={i}
+                  style={{
+                    backgroundColor: '#1f2937',
+                    color: '#e5e7eb',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    overflow: 'auto',
+                    fontSize: '12px',
+                    margin: '8px 0',
+                  }}
+                >
+                  <code>{code}</code>
+                </pre>
+              );
+            }
+            return <span key={i}>{part}</span>;
+          })}
+        </React.Fragment>
+      );
     }
 
-    return content;
+    return <React.Fragment>{content}</React.Fragment>;
   };
 
   return (
@@ -498,9 +515,9 @@ export function MessageBubble({
           <span style={{ opacity: 0.5 }}>▋</span>
         )}
       </div>
-      {showTimestamp && message.metadata?.timestamp && (
+      {showTimestamp && message.timestamp && (
         <div style={defaultStyles.timestamp}>
-          {new Date(message.metadata.timestamp as number).toLocaleTimeString()}
+          {new Date(message.timestamp).toLocaleTimeString()}
         </div>
       )}
     </div>
@@ -519,7 +536,7 @@ export function ToolStatus({
   className,
   style,
   collapseCompleted = false,
-}: ToolStatusProps) {
+}: ToolStatusProps): React.ReactElement | null {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (toolCalls.length === 0) return null;
@@ -570,20 +587,22 @@ export function ToolStatus({
           );
         }
 
+        const success = result ? isToolSuccess(result) : undefined;
+
         return (
           <div key={toolCall.id} style={defaultStyles.toolItem}>
             <span style={{ fontSize: '14px' }}>
-              {result ? (result.success ? '✓' : '✗') : '⋯'}
+              {result ? (success ? '✓' : '✗') : '⋯'}
             </span>
             <span style={{ fontWeight: 500 }}>{toolCall.name}</span>
             {result && (
               <span
                 style={{
-                  color: result.success ? '#059669' : '#dc2626',
+                  color: success ? '#059669' : '#dc2626',
                   fontSize: '11px',
                 }}
               >
-                {result.success ? 'Success' : 'Failed'}
+                {success ? 'Success' : 'Failed'}
               </span>
             )}
           </div>
@@ -619,7 +638,7 @@ export function TypingIndicator({
   text = 'Thinking',
   className,
   style,
-}: TypingIndicatorProps) {
+}: TypingIndicatorProps): React.ReactElement | null {
   if (!isVisible) return null;
 
   return (
@@ -662,7 +681,7 @@ export class ChatErrorBoundary extends React.Component<
     return { hasError: true, error };
   }
 
-  render() {
+  render(): React.ReactNode {
     if (this.state.hasError) {
       return (
         this.props.fallback ?? (
@@ -714,7 +733,7 @@ export function Avatar({
   alt?: string;
   size?: number;
   style?: CSSProperties;
-}) {
+}): React.ReactElement {
   const getDefaultIcon = () => {
     switch (role) {
       case 'user':
