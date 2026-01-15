@@ -345,24 +345,6 @@
 }
 
 /* ============================================
-   RESPONSIVE
-   ============================================ */
-
-@media (max-width: 768px) {
-  .VPHero .name {
-    font-size: 2.5rem !important;
-  }
-  
-  .VPHero .text {
-    font-size: 1rem !important;
-  }
-  
-  .VPFeature {
-    border-radius: 12px !important;
-  }
-}
-
-/* ============================================
    ANIMATIONS
    ============================================ */
 
@@ -439,4 +421,616 @@
   font-size: 0.875rem;
   color: var(--vp-c-text-2);
   margin-top: 0.25rem;
+}
+
+/* ============================================
+   RESPONSIVE - TABLET (768px - 1023px)
+   ============================================ */
+
+@media (max-width: 1023px) {
+  /* Hero adjustments */
+  .VPHero {
+    padding-top: 60px !important;
+    padding-bottom: 60px !important;
+  }
+  
+  .VPHero .name {
+    font-size: 3rem !important;
+  }
+  
+  .VPHero .text {
+    font-size: 1.1rem !important;
+    max-width: 500px !important;
+  }
+  
+  .VPHero .tagline {
+    font-size: 1.1rem !important;
+  }
+  
+  /* Hero glow smaller */
+  .VPHome::before {
+    height: 450px;
+    max-width: 900px;
+  }
+  
+  /* Feature cards - 2 column */
+  .VPFeatures .items {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .VPFeature {
+    border-radius: 14px !important;
+  }
+  
+  .VPFeature .title {
+    font-size: 1rem !important;
+  }
+  
+  .VPFeature .details {
+    font-size: 0.9rem !important;
+  }
+  
+  /* Code blocks */
+  .vp-doc div[class*='language-'] code {
+    font-size: 0.85rem !important;
+  }
+  
+  /* Stats grid */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .stat-value {
+    font-size: 1.75rem;
+  }
+  
+  /* Doc content */
+  .VPDoc h1 {
+    font-size: 2rem !important;
+  }
+  
+  .VPDoc h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  .VPDoc h3 {
+    font-size: 1.25rem !important;
+  }
+  
+  /* Table responsiveness */
+  .vp-doc table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE (480px - 767px)
+   ============================================ */
+
+@media (max-width: 767px) {
+  /* Hero - mobile optimized */
+  .VPHero {
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+  
+  .VPHero .name {
+    font-size: 2.25rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  .VPHero .text {
+    font-size: 1rem !important;
+    max-width: 100% !important;
+    line-height: 1.5 !important;
+  }
+  
+  .VPHero .tagline {
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+  }
+  
+  /* Hero glow - reduced on mobile */
+  .VPHome::before {
+    height: 350px;
+    opacity: 0.7;
+  }
+  
+  /* Hero buttons - stack vertically */
+  .VPHero .actions {
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+  
+  .VPHero .actions .action {
+    width: 100% !important;
+  }
+  
+  .VPButton {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 14px 24px !important;
+    font-size: 1rem !important;
+  }
+  
+  /* Feature cards - single column */
+  .VPFeatures .items {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    padding: 0 16px !important;
+  }
+  
+  .VPFeature {
+    border-radius: 12px !important;
+    padding: 20px !important;
+  }
+  
+  /* Disable hover effects on touch devices */
+  .VPFeature:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  .VPFeature .title {
+    font-size: 1rem !important;
+  }
+  
+  .VPFeature .details {
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+  }
+  
+  .VPFeature .icon {
+    font-size: 1.75rem !important;
+  }
+  
+  /* Code blocks - mobile friendly */
+  .vp-doc div[class*='language-'] {
+    border-radius: 10px !important;
+    margin-left: -16px !important;
+    margin-right: -16px !important;
+    border-radius: 0 !important;
+  }
+  
+  .vp-doc div[class*='language-'] code {
+    font-size: 0.8rem !important;
+    line-height: 1.6 !important;
+  }
+  
+  .vp-doc div[class*='language-'] pre {
+    padding: 16px !important;
+  }
+  
+  /* Copy button - larger touch target */
+  .vp-doc div[class*='language-'] button.copy {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  
+  /* Stats grid - 2 columns on mobile */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 1.5rem 0;
+  }
+  
+  .stat-item {
+    padding: 1rem;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+  }
+  
+  .stat-label {
+    font-size: 0.75rem;
+  }
+  
+  /* Doc content - mobile typography */
+  .VPDoc {
+    padding: 24px 16px !important;
+  }
+  
+  .VPDoc h1 {
+    font-size: 1.75rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  .VPDoc h2 {
+    font-size: 1.35rem !important;
+    margin-top: 2rem !important;
+  }
+  
+  .VPDoc h3 {
+    font-size: 1.15rem !important;
+  }
+  
+  .VPDoc p {
+    font-size: 0.95rem !important;
+    line-height: 1.7 !important;
+  }
+  
+  .VPDoc li {
+    font-size: 0.95rem !important;
+  }
+  
+  /* Navbar - mobile adjustments */
+  .VPNavBarTitle .title {
+    font-size: 1rem !important;
+  }
+  
+  /* Mobile sidebar */
+  .VPSidebar {
+    padding-top: 16px !important;
+  }
+  
+  .VPSidebarItem .text {
+    font-size: 0.95rem !important;
+    padding: 8px 0 !important;
+  }
+  
+  /* Table of contents - hide on mobile */
+  .VPDocAsideOutline {
+    display: none !important;
+  }
+  
+  /* Tables - horizontal scroll */
+  .vp-doc table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: 0.85rem;
+  }
+  
+  .vp-doc th,
+  .vp-doc td {
+    padding: 8px 12px !important;
+    white-space: nowrap;
+  }
+  
+  /* Version badge */
+  .version-badge {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.7rem;
+  }
+  
+  /* Footer */
+  .VPFooter {
+    padding: 24px 16px !important;
+  }
+  
+  .VPFooter .message,
+  .VPFooter .copyright {
+    font-size: 0.85rem !important;
+  }
+  
+  /* Search button */
+  .DocSearch-Button {
+    padding: 8px 12px !important;
+  }
+  
+  .DocSearch-Button-Placeholder {
+    display: none !important;
+  }
+  
+  /* Custom page content padding */
+  .home-content {
+    padding: 0 16px !important;
+  }
+  
+  /* Badges section */
+  .badges-section {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: center !important;
+  }
+  
+  .badges-section img {
+    height: 20px !important;
+  }
+  
+  /* Why exists section */
+  .why-exists {
+    padding: 24px 16px !important;
+    margin: 24px 0 !important;
+  }
+  
+  .why-exists h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  .why-exists p {
+    font-size: 0.95rem !important;
+  }
+  
+  /* Feature showcase */
+  .feature-showcase {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    padding: 0 !important;
+  }
+  
+  .showcase-item {
+    padding: 20px !important;
+  }
+  
+  /* CTA buttons in content */
+  .cta-button {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 14px 20px !important;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - SMALL PHONES (< 480px)
+   ============================================ */
+
+@media (max-width: 479px) {
+  /* Hero - extra small */
+  .VPHero {
+    padding-top: 32px !important;
+    padding-bottom: 32px !important;
+  }
+  
+  .VPHero .name {
+    font-size: 1.85rem !important;
+  }
+  
+  .VPHero .text {
+    font-size: 0.9rem !important;
+  }
+  
+  .VPHero .tagline {
+    font-size: 0.9rem !important;
+  }
+  
+  /* Smaller buttons */
+  .VPButton {
+    padding: 12px 20px !important;
+    font-size: 0.9rem !important;
+  }
+  
+  /* Feature cards - tighter */
+  .VPFeatures .items {
+    gap: 12px !important;
+    padding: 0 12px !important;
+  }
+  
+  .VPFeature {
+    padding: 16px !important;
+  }
+  
+  .VPFeature .title {
+    font-size: 0.95rem !important;
+  }
+  
+  .VPFeature .details {
+    font-size: 0.8rem !important;
+  }
+  
+  .VPFeature .icon {
+    font-size: 1.5rem !important;
+  }
+  
+  /* Code blocks - smaller */
+  .vp-doc div[class*='language-'] code {
+    font-size: 0.75rem !important;
+  }
+  
+  /* Stats - single column */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+  
+  .stat-value {
+    font-size: 1.35rem;
+  }
+  
+  /* Doc typography - smaller */
+  .VPDoc h1 {
+    font-size: 1.5rem !important;
+  }
+  
+  .VPDoc h2 {
+    font-size: 1.2rem !important;
+  }
+  
+  .VPDoc h3 {
+    font-size: 1.05rem !important;
+  }
+  
+  .VPDoc p,
+  .VPDoc li {
+    font-size: 0.9rem !important;
+  }
+  
+  /* Tables - smaller text */
+  .vp-doc th,
+  .vp-doc td {
+    padding: 6px 10px !important;
+    font-size: 0.8rem !important;
+  }
+  
+  /* Navbar title */
+  .VPNavBarTitle .title {
+    font-size: 0.9rem !important;
+  }
+  
+  /* Footer - compact */
+  .VPFooter .message,
+  .VPFooter .copyright {
+    font-size: 0.8rem !important;
+  }
+  
+  /* Badges - smaller */
+  .badges-section img {
+    height: 18px !important;
+  }
+  
+  /* Why exists - compact */
+  .why-exists {
+    padding: 20px 12px !important;
+  }
+  
+  .why-exists h2 {
+    font-size: 1.3rem !important;
+  }
+  
+  .why-exists p {
+    font-size: 0.875rem !important;
+  }
+}
+
+/* ============================================
+   TOUCH DEVICE OPTIMIZATIONS
+   ============================================ */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Disable hover transforms on touch */
+  .VPFeature:hover {
+    transform: none !important;
+  }
+  
+  .VPButton.brand:hover {
+    transform: none !important;
+  }
+  
+  /* Larger touch targets */
+  .VPSidebarItem .text {
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+  
+  .VPNavBarMenuLink {
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+  
+  /* Improve tap feedback */
+  .VPButton {
+    -webkit-tap-highlight-color: rgba(99, 102, 241, 0.3);
+  }
+  
+  .VPFeature {
+    -webkit-tap-highlight-color: rgba(99, 102, 241, 0.2);
+  }
+}
+
+/* ============================================
+   iOS SAFE AREAS (NOTCH SUPPORT)
+   ============================================ */
+
+@supports (padding: max(0px)) {
+  .VPNav {
+    padding-left: max(16px, env(safe-area-inset-left)) !important;
+    padding-right: max(16px, env(safe-area-inset-right)) !important;
+  }
+  
+  .VPSidebar {
+    padding-left: max(16px, env(safe-area-inset-left)) !important;
+    padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
+  }
+  
+  .VPFooter {
+    padding-bottom: max(24px, env(safe-area-inset-bottom)) !important;
+  }
+  
+  @media (max-width: 767px) {
+    .VPHero {
+      padding-left: max(20px, env(safe-area-inset-left)) !important;
+      padding-right: max(20px, env(safe-area-inset-right)) !important;
+    }
+    
+    .VPDoc {
+      padding-left: max(16px, env(safe-area-inset-left)) !important;
+      padding-right: max(16px, env(safe-area-inset-right)) !important;
+    }
+  }
+}
+
+/* ============================================
+   LANDSCAPE MOBILE
+   ============================================ */
+
+@media (max-width: 900px) and (orientation: landscape) {
+  .VPHero {
+    padding-top: 30px !important;
+    padding-bottom: 30px !important;
+  }
+  
+  .VPHero .name {
+    font-size: 2rem !important;
+  }
+  
+  /* Hero glow - reduced in landscape */
+  .VPHome::before {
+    height: 250px;
+  }
+  
+  /* Feature cards - 2 columns in landscape */
+  .VPFeatures .items {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION ACCESSIBILITY
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .VPFeature,
+  .VPHero .container,
+  .VPButton {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  .VPFeature:hover {
+    transform: none !important;
+  }
+  
+  .VPButton.brand:hover {
+    transform: none !important;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+  .VPNav,
+  .VPSidebar,
+  .VPDocAsideOutline,
+  .VPFooter,
+  .DocSearch-Button,
+  .vp-doc div[class*='language-'] button.copy {
+    display: none !important;
+  }
+  
+  .VPDoc {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  
+  .vp-doc div[class*='language-'] {
+    border: 1px solid #ccc !important;
+    background: #f5f5f5 !important;
+  }
+  
+  .VPDoc h1 {
+    background: none !important;
+    -webkit-text-fill-color: #000 !important;
+    color: #000 !important;
+  }
 }
