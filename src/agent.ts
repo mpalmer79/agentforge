@@ -29,36 +29,44 @@ export interface ExtendedAgentConfig extends AgentConfig {
     failureThreshold?: number;
     resetTimeoutMs?: number;
   };
+
   /** Enable request deduplication */
   deduplication?: {
     enabled?: boolean;
     ttlMs?: number;
   };
+
   /** Concurrency limits */
   concurrency?: {
     maxConcurrent?: number;
     maxQueue?: number;
   };
+
   /** Timeout settings */
   timeouts?: {
     requestMs?: number;
     toolExecutionMs?: number;
   };
+
   /** Retry settings */
   retry?: {
     maxRetries?: number;
     baseDelayMs?: number;
     maxDelayMs?: number;
   };
+
   /** Conversation persistence */
   persistence?: {
     manager?: ConversationManager;
     autoSave?: boolean;
   };
+
   /** Custom telemetry collector */
   telemetry?: TelemetryCollector;
+
   /** Validate provider responses */
   validateResponses?: boolean;
+
   /** Token budget management */
   tokenBudget?: {
     /** Reserve tokens for response */
@@ -70,8 +78,8 @@ export interface ExtendedAgentConfig extends AgentConfig {
 
 /**
  * The main Agent class for orchestrating AI interactions with tools.
- * 
- * Staff-level features:
+ *
+ * Reliability features:
  * - Circuit breaker for fault tolerance
  * - Request deduplication
  * - Concurrency control via bulkhead
@@ -89,8 +97,8 @@ export class Agent {
   private maxIterations: number;
   private temperature?: number;
   private maxTokens?: number;
-  
-  // Staff-level additions
+
+  // Reliability and observability components
   private circuitBreaker?: CircuitBreaker;
   private deduplicator?: RequestDeduplicator<AgentResponse>;
   private bulkhead?: Bulkhead;
@@ -111,10 +119,10 @@ export class Agent {
     this.maxIterations = config.maxIterations ?? 10;
     this.temperature = config.temperature;
     this.maxTokens = config.maxTokens;
-    
+
     // Initialize telemetry
     this.telemetry = config.telemetry ?? getTelemetry();
-    
+
     // Initialize circuit breaker
     if (config.circuitBreaker?.enabled !== false) {
       this.circuitBreaker = new CircuitBreaker({
@@ -125,12 +133,12 @@ export class Agent {
         },
       });
     }
-    
+
     // Initialize deduplication
     if (config.deduplication?.enabled !== false) {
       this.deduplicator = new RequestDeduplicator(config.deduplication?.ttlMs ?? 5000);
     }
-    
+
     // Initialize bulkhead
     if (config.concurrency) {
       this.bulkhead = new Bulkhead(
@@ -138,10 +146,10 @@ export class Agent {
         config.concurrency.maxQueue ?? 100
       );
     }
-    
+
     // Initialize persistence
     this.persistence = config.persistence?.manager;
-    
+
     // Other settings
     this.validateResponses = config.validateResponses ?? true;
     this.requestTimeoutMs = config.timeouts?.requestMs ?? 60000;
@@ -157,7 +165,7 @@ export class Agent {
       toolCount: this.tools.size,
       maxIterations: this.maxIterations,
     });
-    
+
     const runSpanId = this.telemetry.startSpan(traceId, 'agent.run', {
       inputType: typeof input === 'string' ? 'string' : 'messages',
     });
@@ -171,18 +179,15 @@ export class Agent {
           tools: Array.from(this.tools.keys()),
           temperature: this.temperature,
         });
-        
-        return await this.deduplicator.execute(dedupKey, () => 
+
+        return await this.deduplicator.execute(dedupKey, () =>
           this.executeRun(input, options, traceId)
         );
       }
-      
+
       return await this.executeRun(input, options, traceId);
-      
     } catch (error) {
-      this.telemetry.endSpan(runSpanId, 'error', { 
-        errorMessage: error instanceof Error ? error.message : String(error) 
-      });
+      this.telemetry.endSpan(runSpanId, 'error', { errorMessage: error instanceof Error ? error.message : String(error) });
       throw error;
     } finally {
       this.telemetry.endSpan(runSpanId, 'ok');
@@ -212,13 +217,12 @@ export class Agent {
       }
 
       iterations++;
-      
-      const iterationSpanId = traceId 
+      const iterationSpanId = traceId
         ? this.telemetry.startSpan(traceId, `agent.iteration.${iterations}`)
         : '';
 
       const managedMessages = this.applyMemoryStrategy(context.messages);
-      
+
       // Check token budget
       if (this.tokenBudgetConfig) {
         const budget = calculateBudget(
@@ -226,10 +230,10 @@ export class Agent {
           managedMessages.map(m => ({ role: m.role, content: m.content })),
           this.tokenBudgetConfig.reserveForResponse ?? 1000
         );
-        
+
         this.telemetry.recordMetric('agent.token_budget.used', budget.used, 'tokens');
         this.telemetry.recordMetric('agent.token_budget.remaining', budget.remaining, 'tokens');
-        
+
         if (budget.remaining < 0 && this.tokenBudgetConfig.autoTruncate) {
           this.telemetry.warn('Token budget exceeded, truncating messages', { budget });
           // Truncate older messages (this is handled by memory strategy)
@@ -275,7 +279,7 @@ export class Agent {
         if (processedResponse.usage) {
           this.telemetry.recordTokens('agent.tokens.prompt', processedResponse.usage.promptTokens);
           this.telemetry.recordTokens('agent.tokens.completion', processedResponse.usage.completionTokens);
-          
+
           if (this.persistence) {
             this.persistence.updateTokenCount(processedResponse.usage.totalTokens);
           }
@@ -287,8 +291,9 @@ export class Agent {
           content: processedResponse.content,
           timestamp: Date.now(),
         };
+
         context.messages.push(assistantMessage);
-        
+
         if (this.persistence) {
           this.persistence.addMessage(assistantMessage);
         }
@@ -296,7 +301,6 @@ export class Agent {
         // No tool calls - we're done
         if (!processedResponse.toolCalls || processedResponse.toolCalls.length === 0) {
           if (iterationSpanId) this.telemetry.endSpan(iterationSpanId, 'ok');
-          
           return {
             id: processedResponse.id,
             content: processedResponse.content,
@@ -312,9 +316,8 @@ export class Agent {
           processedContext,
           traceId
         );
-
         allToolResults = [...allToolResults, ...toolResults];
-        
+
         if (this.persistence) {
           this.persistence.recordToolResults(toolResults);
         }
@@ -330,21 +333,19 @@ export class Agent {
               toolCallId: result.toolCallId,
             },
           };
+
           context.messages.push(toolMessage);
-          
+
           if (this.persistence) {
             this.persistence.addMessage(toolMessage);
           }
         }
 
         if (iterationSpanId) this.telemetry.endSpan(iterationSpanId, 'ok');
-
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));
         await this.middleware.runOnError(err, middlewareContext);
-        
         if (iterationSpanId) this.telemetry.endSpan(iterationSpanId, 'error');
-        
         throw err;
       }
     }
@@ -364,15 +365,15 @@ export class Agent {
     context: MiddlewareContext,
     traceId?: string
   ): Promise<any> {
-    const spanId = traceId 
+    const spanId = traceId
       ? this.telemetry.startSpan(traceId, 'provider.complete', { provider: this.provider.name })
       : '';
-    
+
     const startTime = Date.now();
-    
+
     const executeCall = async () => {
       this.telemetry.trackProviderRequest(this.provider.name, context.request);
-      
+
       const response = await withTimeout(
         this.provider.complete({
           ...context.request,
@@ -381,16 +382,17 @@ export class Agent {
         this.requestTimeoutMs,
         `Provider ${this.provider.name} request timed out`
       );
-      
+
       const duration = Date.now() - startTime;
       this.telemetry.trackProviderResponse(this.provider.name, response, duration);
-      
+
       return response;
     };
 
     try {
       // Apply bulkhead if configured
       let callFn = executeCall;
+
       if (this.bulkhead) {
         callFn = () => this.bulkhead!.execute(executeCall);
       }
@@ -417,15 +419,13 @@ export class Agent {
 
       if (spanId) this.telemetry.endSpan(spanId, 'ok');
       return response;
-      
     } catch (error) {
       const duration = Date.now() - startTime;
       this.telemetry.trackProviderError(
-        this.provider.name, 
+        this.provider.name,
         error instanceof Error ? error : new Error(String(error)),
         duration
       );
-      
       if (spanId) this.telemetry.endSpan(spanId, 'error');
       throw error;
     }
@@ -597,6 +597,7 @@ export class Agent {
           // Remove oldest user/assistant pairs first, keeping tool messages with their context
           const trimmed: Message[] = [];
           let kept = 0;
+
           // Iterate from newest to oldest
           for (let i = otherMessages.length - 1; i >= 0 && kept < availableSlots; i--) {
             trimmed.unshift(otherMessages[i]);
@@ -612,6 +613,7 @@ export class Agent {
           if (otherMessages.length > 0 && availableSlots > 1) {
             const firstMessage = otherMessages[0];
             const recentMessages = otherMessages.slice(-(availableSlots - 1));
+
             // Avoid duplicating if first message is in recent
             if (recentMessages[0]?.id !== firstMessage.id) {
               result = [...systemMessages, firstMessage, ...recentMessages];
@@ -655,11 +657,12 @@ export class Agent {
         ...filteredMessages.filter((m) => m.role === 'system'),
         ...filteredMessages.filter((m) => m.role !== 'system').reverse(),
       ];
-      
+
       this.telemetry.recordMetric('agent.memory.tokens_used', totalTokens, 'tokens');
     }
 
     this.telemetry.recordMetric('agent.memory.message_count', result.length, 'count');
+
     return result;
   }
 
@@ -672,17 +675,18 @@ export class Agent {
 
     // Execute tool calls with controlled concurrency
     const executeToolCall = async (toolCall: ToolCall): Promise<ToolResult> => {
-      const spanId = traceId 
+      const spanId = traceId
         ? this.telemetry.startSpan(traceId, `tool.${toolCall.name}`, {
             toolCallId: toolCall.id,
             arguments: toolCall.arguments,
           })
         : '';
-      
+
       const startTime = Date.now();
       this.telemetry.trackToolStart(toolCall.name, toolCall.arguments);
 
       const processedToolCall = await this.middleware.runOnToolCall(toolCall, context);
+
       const tool = this.tools.get(processedToolCall.name);
 
       if (!tool) {
@@ -691,10 +695,9 @@ export class Agent {
           result: null,
           error: `Tool "${processedToolCall.name}" not found`,
         };
-        
+
         this.telemetry.trackToolEnd(processedToolCall.name, result, Date.now() - startTime);
         if (spanId) this.telemetry.endSpan(spanId, 'error', { error: 'Tool not found' });
-        
         return result;
       }
 
@@ -705,20 +708,19 @@ export class Agent {
           this.toolTimeoutMs,
           `Tool "${processedToolCall.name}" timed out`
         );
-        
+
         let toolResult: ToolResult = {
           toolCallId: processedToolCall.id,
           result,
         };
 
         toolResult = await this.middleware.runOnToolResult(toolResult, context);
-        
+
         const duration = Date.now() - startTime;
         this.telemetry.trackToolEnd(processedToolCall.name, toolResult, duration);
         if (spanId) this.telemetry.endSpan(spanId, 'ok', { duration });
-        
+
         return toolResult;
-        
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));
         const toolError = new ToolExecutionError(
@@ -732,11 +734,11 @@ export class Agent {
           result: null,
           error: toolError.message,
         };
-        
+
         const duration = Date.now() - startTime;
         this.telemetry.trackToolEnd(processedToolCall.name, result, duration);
         if (spanId) this.telemetry.endSpan(spanId, 'error', { error: err.message, duration });
-        
+
         return result;
       }
     };
@@ -763,7 +765,9 @@ export class Agent {
     return {
       circuitBreaker: this.circuitBreaker?.getStats(),
       bulkhead: this.bulkhead?.getStats(),
-      deduplicator: this.deduplicator ? { pending: this.deduplicator.getPendingCount() } : undefined,
+      deduplicator: this.deduplicator
+        ? { pending: this.deduplicator.getPendingCount() }
+        : undefined,
     };
   }
 
