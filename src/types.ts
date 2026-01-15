@@ -166,14 +166,8 @@ export interface Middleware {
     context: MiddlewareContext
   ) => Promise<CompletionResponse>;
   onError?: (error: Error, context: MiddlewareContext) => Promise<void>;
-  onToolCall?: (
-    toolCall: ToolCall,
-    context: MiddlewareContext
-  ) => Promise<ToolCall>;
-  onToolResult?: (
-    result: ToolResult,
-    context: MiddlewareContext
-  ) => Promise<ToolResult>;
+  onToolCall?: (toolCall: ToolCall, context: MiddlewareContext) => Promise<ToolCall>;
+  onToolResult?: (result: ToolResult, context: MiddlewareContext) => Promise<ToolResult>;
 }
 
 // ============================================

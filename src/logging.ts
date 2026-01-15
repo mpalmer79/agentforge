@@ -1,6 +1,6 @@
 /**
  * Structured Logging System
- * 
+ *
  * Production-grade logging with:
  * - Multiple log levels
  * - Structured JSON output
@@ -81,7 +81,13 @@ export class Logger {
     this.config = {
       level: config.level ?? 'info',
       transports: config.transports ?? [createConsoleTransport()],
-      redactFields: config.redactFields ?? ['password', 'apiKey', 'token', 'secret', 'authorization'],
+      redactFields: config.redactFields ?? [
+        'password',
+        'apiKey',
+        'token',
+        'secret',
+        'authorization',
+      ],
       sampleRate: config.sampleRate ?? 1,
       defaultContext: config.defaultContext ?? {},
       timestampFormat: config.timestampFormat ?? 'iso',
@@ -106,7 +112,11 @@ export class Logger {
     this.log('warn', message, context);
   }
 
-  error(message: string, error?: Error | Record<string, unknown>, context?: Record<string, unknown>): void {
+  error(
+    message: string,
+    error?: Error | Record<string, unknown>,
+    context?: Record<string, unknown>
+  ): void {
     if (error instanceof Error) {
       this.log('error', message, {
         ...context,
@@ -121,7 +131,11 @@ export class Logger {
     }
   }
 
-  fatal(message: string, error?: Error | Record<string, unknown>, context?: Record<string, unknown>): void {
+  fatal(
+    message: string,
+    error?: Error | Record<string, unknown>,
+    context?: Record<string, unknown>
+  ): void {
     if (error instanceof Error) {
       this.log('fatal', message, {
         ...context,
@@ -203,14 +217,22 @@ export class Logger {
   /**
    * Log with automatic timing
    */
-  async timed<T>(operation: string, fn: () => Promise<T>, context?: Record<string, unknown>): Promise<T> {
+  async timed<T>(
+    operation: string,
+    fn: () => Promise<T>,
+    context?: Record<string, unknown>
+  ): Promise<T> {
     const timer = this.startTimer(operation);
     try {
       const result = await fn();
       timer.end({ ...context, success: true });
       return result;
     } catch (error) {
-      timer.end({ ...context, success: false, error: error instanceof Error ? error.message : String(error) });
+      timer.end({
+        ...context,
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }
@@ -226,16 +248,12 @@ export class Logger {
   }
 
   async flush(): Promise<void> {
-    await Promise.all(
-      this.config.transports.map(t => t.flush?.())
-    );
+    await Promise.all(this.config.transports.map((t) => t.flush?.()));
   }
 
   async close(): Promise<void> {
     await this.flush();
-    await Promise.all(
-      this.config.transports.map(t => t.close?.())
-    );
+    await Promise.all(this.config.transports.map((t) => t.close?.()));
   }
 
   // ---- Private Methods ----
@@ -249,7 +267,7 @@ export class Logger {
     }
 
     const entry = this.createEntry(level, message, context);
-    
+
     for (const transport of this.config.transports) {
       try {
         transport.log(entry);
@@ -260,7 +278,11 @@ export class Logger {
     }
   }
 
-  private createEntry(level: LogLevel, message: string, context?: Record<string, unknown>): LogEntry {
+  private createEntry(
+    level: LogLevel,
+    message: string,
+    context?: Record<string, unknown>
+  ): LogEntry {
     // Merge all context layers
     const mergedContext = {
       ...this.config.defaultContext,
@@ -277,9 +299,8 @@ export class Logger {
     return {
       level,
       message,
-      timestamp: this.config.timestampFormat === 'iso' 
-        ? new Date().toISOString()
-        : String(Date.now()),
+      timestamp:
+        this.config.timestampFormat === 'iso' ? new Date().toISOString() : String(Date.now()),
       context: Object.keys(restContext).length > 0 ? restContext : undefined,
       error: error as LogEntry['error'],
       traceId,
@@ -294,8 +315,8 @@ export class Logger {
 
     for (const [key, value] of Object.entries(obj)) {
       const lowerKey = key.toLowerCase();
-      
-      if (this.config.redactFields.some(field => lowerKey.includes(field.toLowerCase()))) {
+
+      if (this.config.redactFields.some((field) => lowerKey.includes(field.toLowerCase()))) {
         redacted[key] = '[REDACTED]';
       } else if (value && typeof value === 'object' && !Array.isArray(value)) {
         redacted[key] = this.redactSensitiveData(value as Record<string, unknown>);
@@ -315,19 +336,21 @@ export class Logger {
 /**
  * Console transport with colored output
  */
-export function createConsoleTransport(options: {
-  colors?: boolean;
-  prettyPrint?: boolean;
-} = {}): LogTransport {
+export function createConsoleTransport(
+  options: {
+    colors?: boolean;
+    prettyPrint?: boolean;
+  } = {}
+): LogTransport {
   const { colors = true, prettyPrint = true } = options;
 
   const levelColors: Record<LogLevel, string> = {
-    trace: '\x1b[90m',  // gray
-    debug: '\x1b[36m',  // cyan
-    info: '\x1b[32m',   // green
-    warn: '\x1b[33m',   // yellow
-    error: '\x1b[31m',  // red
-    fatal: '\x1b[35m',  // magenta
+    trace: '\x1b[90m', // gray
+    debug: '\x1b[36m', // cyan
+    info: '\x1b[32m', // green
+    warn: '\x1b[33m', // yellow
+    error: '\x1b[31m', // red
+    fatal: '\x1b[35m', // magenta
   };
   const reset = '\x1b[0m';
 
@@ -340,10 +363,14 @@ export function createConsoleTransport(options: {
 
       if (prettyPrint) {
         const contextStr = entry.context ? ` ${JSON.stringify(entry.context)}` : '';
-        const errorStr = entry.error ? `\n  Error: ${entry.error.message}${entry.error.stack ? `\n${entry.error.stack}` : ''}` : '';
+        const errorStr = entry.error
+          ? `\n  Error: ${entry.error.message}${entry.error.stack ? `\n${entry.error.stack}` : ''}`
+          : '';
         const durationStr = entry.duration !== undefined ? ` (${entry.duration}ms)` : '';
-        
-        console.log(`${color}[${levelStr}]${resetCode} ${entry.timestamp} - ${entry.message}${durationStr}${contextStr}${errorStr}`);
+
+        console.log(
+          `${color}[${levelStr}]${resetCode} ${entry.timestamp} - ${entry.message}${durationStr}${contextStr}${errorStr}`
+        );
       } else {
         console.log(JSON.stringify(entry));
       }
@@ -354,9 +381,11 @@ export function createConsoleTransport(options: {
 /**
  * JSON transport for structured logging (useful for log aggregators)
  */
-export function createJSONTransport(options: {
-  stream?: { write: (data: string) => void };
-} = {}): LogTransport {
+export function createJSONTransport(
+  options: {
+    stream?: { write: (data: string) => void };
+  } = {}
+): LogTransport {
   const stream = options.stream ?? { write: (data: string) => console.log(data) };
 
   return {
@@ -437,10 +466,10 @@ export function createMultiTransport(transports: LogTransport[]): LogTransport {
       }
     },
     async flush(): Promise<void> {
-      await Promise.all(transports.map(t => t.flush?.()));
+      await Promise.all(transports.map((t) => t.flush?.()));
     },
     async close(): Promise<void> {
-      await Promise.all(transports.map(t => t.close?.()));
+      await Promise.all(transports.map((t) => t.close?.()));
     },
   };
 }
@@ -486,7 +515,7 @@ export async function loggedOperation<T>(
   context?: Record<string, unknown>
 ): Promise<T> {
   const timer = logger.startTimer(operation);
-  
+
   try {
     logger.debug(`Starting ${operation}`, context);
     const result = await fn();

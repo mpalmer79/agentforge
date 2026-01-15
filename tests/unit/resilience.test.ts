@@ -47,9 +47,9 @@ describe('CircuitBreaker', () => {
       await expect(circuitBreaker.execute(failingFn)).rejects.toThrow();
     }
 
-    await expect(
-      circuitBreaker.execute(() => Promise.resolve('success'))
-    ).rejects.toThrow(/Circuit breaker is open/);
+    await expect(circuitBreaker.execute(() => Promise.resolve('success'))).rejects.toThrow(
+      /Circuit breaker is open/
+    );
   });
 
   it('should transition to half-open after timeout', async () => {
@@ -144,10 +144,7 @@ describe('RequestDeduplicator', () => {
       return 'result';
     };
 
-    await Promise.all([
-      deduplicator.execute('key1', fn),
-      deduplicator.execute('key2', fn),
-    ]);
+    await Promise.all([deduplicator.execute('key1', fn), deduplicator.execute('key2', fn)]);
 
     expect(callCount).toBe(2);
   });
@@ -200,7 +197,7 @@ describe('Bulkhead', () => {
 
   it('should reject when queue is full', async () => {
     const bulkhead = new Bulkhead(1, 1);
-    
+
     const slowFn = async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
       return 'done';
@@ -219,7 +216,7 @@ describe('Bulkhead', () => {
   it('should report stats', () => {
     const bulkhead = new Bulkhead(5, 10);
     const stats = bulkhead.getStats();
-    
+
     expect(stats.maxConcurrent).toBe(5);
     expect(stats.running).toBe(0);
     expect(stats.queued).toBe(0);
@@ -230,22 +227,23 @@ describe('retryWithBackoff', () => {
   it('should succeed on first attempt', async () => {
     const fn = vi.fn().mockResolvedValue('success');
     const result = await retryWithBackoff(fn, { maxRetries: 3 });
-    
+
     expect(result).toBe('success');
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
   it('should retry on failure', async () => {
-    const fn = vi.fn()
+    const fn = vi
+      .fn()
       .mockRejectedValueOnce(new Error('timeout error'))
       .mockRejectedValueOnce(new Error('timeout error'))
       .mockResolvedValue('success');
 
-    const result = await retryWithBackoff(fn, { 
+    const result = await retryWithBackoff(fn, {
       maxRetries: 3,
       baseDelayMs: 10,
     });
-    
+
     expect(result).toBe('success');
     expect(fn).toHaveBeenCalledTimes(3);
   });
@@ -253,25 +251,26 @@ describe('retryWithBackoff', () => {
   it('should throw after max retries', async () => {
     const fn = vi.fn().mockRejectedValue(new Error('timeout error'));
 
-    await expect(
-      retryWithBackoff(fn, { maxRetries: 2, baseDelayMs: 10 })
-    ).rejects.toThrow('timeout error');
-    
+    await expect(retryWithBackoff(fn, { maxRetries: 2, baseDelayMs: 10 })).rejects.toThrow(
+      'timeout error'
+    );
+
     expect(fn).toHaveBeenCalledTimes(3); // initial + 2 retries
   });
 
   it('should call onRetry callback', async () => {
     const onRetry = vi.fn();
-    const fn = vi.fn()
+    const fn = vi
+      .fn()
       .mockRejectedValueOnce(new Error('timeout error'))
       .mockResolvedValue('success');
 
-    await retryWithBackoff(fn, { 
+    await retryWithBackoff(fn, {
       maxRetries: 2,
       baseDelayMs: 10,
       onRetry,
     });
-    
+
     expect(onRetry).toHaveBeenCalledTimes(1);
     expect(onRetry).toHaveBeenCalledWith(expect.any(Error), 0, expect.any(Number));
   });
@@ -280,12 +279,12 @@ describe('retryWithBackoff', () => {
     const fn = vi.fn().mockRejectedValue(new Error('not retryable'));
 
     await expect(
-      retryWithBackoff(fn, { 
+      retryWithBackoff(fn, {
         maxRetries: 3,
         isRetryable: () => false,
       })
     ).rejects.toThrow('not retryable');
-    
+
     expect(fn).toHaveBeenCalledTimes(1);
   });
 });
@@ -313,9 +312,9 @@ describe('withTimeout', () => {
       setTimeout(() => resolve('success'), 200);
     });
 
-    await expect(
-      withTimeout(fn, 50, 'Custom timeout message')
-    ).rejects.toThrow(/Custom timeout message/);
+    await expect(withTimeout(fn, 50, 'Custom timeout message')).rejects.toThrow(
+      /Custom timeout message/
+    );
   });
 });
 
@@ -327,11 +326,7 @@ describe('HealthChecker', () => {
   });
 
   it('should report healthy on success', async () => {
-    healthChecker = new HealthChecker(
-      async () => {},
-      100,
-      2
-    );
+    healthChecker = new HealthChecker(async () => {}, 100, 2);
 
     healthChecker.start();
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -370,7 +365,12 @@ describe('withFallback', () => {
 
   it('should fallback on primary failure', async () => {
     const result = await withFallback([
-      { name: 'primary', execute: async () => { throw new Error('fail'); } },
+      {
+        name: 'primary',
+        execute: async () => {
+          throw new Error('fail');
+        },
+      },
       { name: 'secondary', execute: async () => 'secondary result' },
     ]);
 
@@ -388,10 +388,15 @@ describe('withFallback', () => {
 
   it('should call onFallback callback', async () => {
     const onFallback = vi.fn();
-    
+
     await withFallback(
       [
-        { name: 'primary', execute: async () => { throw new Error('fail'); } },
+        {
+          name: 'primary',
+          execute: async () => {
+            throw new Error('fail');
+          },
+        },
         { name: 'secondary', execute: async () => 'secondary result' },
       ],
       onFallback
@@ -403,8 +408,18 @@ describe('withFallback', () => {
   it('should throw if all providers fail', async () => {
     await expect(
       withFallback([
-        { name: 'primary', execute: async () => { throw new Error('fail 1'); } },
-        { name: 'secondary', execute: async () => { throw new Error('fail 2'); } },
+        {
+          name: 'primary',
+          execute: async () => {
+            throw new Error('fail 1');
+          },
+        },
+        {
+          name: 'secondary',
+          execute: async () => {
+            throw new Error('fail 2');
+          },
+        },
       ])
     ).rejects.toThrow('fail 2');
   });

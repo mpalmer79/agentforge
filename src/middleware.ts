@@ -1,4 +1,10 @@
-import type { Middleware, MiddlewareContext, CompletionResponse, ToolCall, ToolResult } from './types';
+import type {
+  Middleware,
+  MiddlewareContext,
+  CompletionResponse,
+  ToolCall,
+  ToolResult,
+} from './types';
 
 /**
  * Create a middleware with partial implementation
@@ -221,7 +227,9 @@ export function createRetryMiddleware(options: {
     shouldRetry = (error) => {
       // Retry on rate limits and server errors
       const message = error.message.toLowerCase();
-      return message.includes('rate limit') || message.includes('503') || message.includes('timeout');
+      return (
+        message.includes('rate limit') || message.includes('503') || message.includes('timeout')
+      );
     },
   } = options;
 

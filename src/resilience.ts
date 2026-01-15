@@ -40,11 +40,10 @@ export class CircuitBreaker {
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     if (!this.canExecute()) {
       getTelemetry().incrementCounter('circuit_breaker.rejected', { state: this.state });
-      throw new ProviderError(
-        'Circuit breaker is open - service unavailable',
-        'circuit_breaker',
-        { statusCode: 503, retryable: true }
-      );
+      throw new ProviderError('Circuit breaker is open - service unavailable', 'circuit_breaker', {
+        statusCode: 503,
+        retryable: true,
+      });
     }
 
     try {
@@ -272,11 +271,10 @@ export class Bulkhead {
 
     if (this.queue.length >= this.maxQueue) {
       getTelemetry().incrementCounter('bulkhead.rejected');
-      throw new ProviderError(
-        'Bulkhead queue full - too many concurrent requests',
-        'bulkhead',
-        { statusCode: 429, retryable: true }
-      );
+      throw new ProviderError('Bulkhead queue full - too many concurrent requests', 'bulkhead', {
+        statusCode: 429,
+        retryable: true,
+      });
     }
 
     getTelemetry().recordMetric('bulkhead.queued', this.queue.length + 1, 'count');
@@ -286,11 +284,12 @@ export class Bulkhead {
         const idx = this.queue.findIndex((e) => e.resolve === resolve);
         if (idx !== -1) {
           this.queue.splice(idx, 1);
-          reject(new ProviderError(
-            'Bulkhead queue timeout',
-            'bulkhead',
-            { statusCode: 408, retryable: true }
-          ));
+          reject(
+            new ProviderError('Bulkhead queue timeout', 'bulkhead', {
+              statusCode: 408,
+              retryable: true,
+            })
+          );
         }
       }, this.queueTimeoutMs);
 
@@ -363,12 +362,12 @@ export async function retryWithBackoff<T>(
       }
 
       const delay = calculateBackoffDelay(attempt, cfg);
-      
+
       getTelemetry().incrementCounter('retry.attempt', { attempt: String(attempt) });
       getTelemetry().recordLatency('retry.delay', delay);
-      
+
       cfg.onRetry?.(lastError, attempt, delay);
-      
+
       await sleep(delay);
     }
   }
@@ -379,14 +378,14 @@ export async function retryWithBackoff<T>(
 function calculateBackoffDelay(attempt: number, config: RetryConfig): number {
   // Exponential backoff
   let delay = config.baseDelayMs * Math.pow(config.backoffMultiplier, attempt);
-  
+
   // Apply max cap
   delay = Math.min(delay, config.maxDelayMs);
-  
+
   // Apply jitter
   const jitterRange = delay * config.jitter;
-  delay = delay - jitterRange + (Math.random() * jitterRange * 2);
-  
+  delay = delay - jitterRange + Math.random() * jitterRange * 2;
+
   return Math.floor(delay);
 }
 
@@ -399,7 +398,10 @@ function sleep(ms: number): Promise<void> {
 // ============================================
 
 export class TimeoutError extends Error {
-  constructor(message: string, public readonly timeoutMs: number) {
+  constructor(
+    message: string,
+    public readonly timeoutMs: number
+  ) {
     super(message);
     this.name = 'TimeoutError';
   }
@@ -444,7 +446,7 @@ export class HealthChecker {
     lastCheck: 0,
     consecutiveFailures: 0,
   };
-  
+
   private checkInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(
@@ -475,28 +477,28 @@ export class HealthChecker {
 
   private async check(): Promise<void> {
     const startTime = Date.now();
-    
+
     try {
       await withTimeout(this.checkFn(), 10000, 'Health check');
-      
+
       this.status = {
         healthy: true,
         latencyMs: Date.now() - startTime,
         lastCheck: Date.now(),
         consecutiveFailures: 0,
       };
-      
+
       getTelemetry().recordLatency('health_check.latency', this.status.latencyMs);
     } catch (error) {
       this.status.consecutiveFailures++;
       this.status.latencyMs = Date.now() - startTime;
       this.status.lastCheck = Date.now();
       this.status.message = error instanceof Error ? error.message : String(error);
-      
+
       if (this.status.consecutiveFailures >= this.unhealthyThreshold) {
         this.status.healthy = false;
       }
-      
+
       getTelemetry().incrementCounter('health_check.failure');
     }
   }
@@ -520,7 +522,7 @@ export async function withFallback<T>(
 
   for (let i = 0; i < providers.length; i++) {
     const provider = providers[i];
-    
+
     // Skip unavailable providers
     if (provider.isAvailable && !provider.isAvailable()) {
       getTelemetry().incrementCounter('fallback.skipped', { provider: provider.name });
@@ -529,15 +531,15 @@ export async function withFallback<T>(
 
     try {
       const result = await provider.execute();
-      
+
       if (i > 0) {
         getTelemetry().incrementCounter('fallback.used', { provider: provider.name });
       }
-      
+
       return result;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      
+
       if (i < providers.length - 1) {
         const nextProvider = providers[i + 1];
         onFallback?.(provider.name, nextProvider.name, lastError);

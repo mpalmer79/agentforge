@@ -12,9 +12,9 @@ export {
 } from './middleware';
 
 // Provider exports
-export { 
-  BaseProvider, 
-  OpenAIProvider, 
+export {
+  BaseProvider,
+  OpenAIProvider,
   AnthropicProvider,
   // v1.1.0 - New providers
   GeminiProvider,
@@ -22,8 +22,8 @@ export {
   TogetherProvider,
   TOGETHER_MODELS,
 } from './providers';
-export type { 
-  OpenAIProviderConfig, 
+export type {
+  OpenAIProviderConfig,
   AnthropicProviderConfig,
   // v1.1.0 - New provider configs
   GeminiProviderConfig,
@@ -204,32 +204,12 @@ export {
 } from './utils';
 
 // Event system exports
-export {
-  EventEmitter,
-  globalEventBus,
-  waitForEvent,
-  eventIterator,
-} from './events';
-export type {
-  AgentEvents,
-  EventName,
-  EventPayload,
-  EventListener,
-} from './events';
+export { EventEmitter, globalEventBus, waitForEvent, eventIterator } from './events';
+export type { AgentEvents, EventName, EventPayload, EventListener } from './events';
 
 // Plugin system exports
-export {
-  PluginManager,
-  definePlugin,
-  analyticsPlugin,
-  telemetryPlugin,
-} from './plugins';
-export type {
-  Plugin,
-  PluginMetadata,
-  PluginContext,
-  PluginLogger,
-} from './plugins';
+export { PluginManager, definePlugin, analyticsPlugin, telemetryPlugin } from './plugins';
+export type { Plugin, PluginMetadata, PluginContext, PluginLogger } from './plugins';
 
 // Batch/Performance exports
 export {
@@ -243,20 +223,20 @@ export {
 // ============================================
 
 // Telemetry & Observability
-export { 
-  TelemetryCollector, 
-  initTelemetry, 
+export {
+  TelemetryCollector,
+  initTelemetry,
   getTelemetry,
   createConsoleExporter,
   createBatchingExporter,
   createOTLPExporter,
 } from './telemetry';
-export type { 
-  Span, 
-  SpanEvent, 
-  Metric, 
-  MetricUnit, 
-  TelemetryEvent, 
+export type {
+  Span,
+  SpanEvent,
+  Metric,
+  MetricUnit,
+  TelemetryEvent,
   TelemetryHooks,
   LogEntry as TelemetryLogEntry,
 } from './telemetry';
@@ -289,12 +269,7 @@ export {
   truncateToTokens,
   MODEL_CONTEXT_WINDOWS,
 } from './tokenizer';
-export type {
-  ModelFamily,
-  TokenCounter,
-  TokenBudget,
-  TruncationOptions,
-} from './tokenizer';
+export type { ModelFamily, TokenCounter, TokenBudget, TruncationOptions } from './tokenizer';
 
 // Persistence
 export {
@@ -347,12 +322,7 @@ export {
   createFilteringTransport,
   createMultiTransport,
 } from './logging';
-export type {
-  LogLevel,
-  LogEntry,
-  LogTransport,
-  LoggerConfig,
-} from './logging';
+export type { LogLevel, LogEntry, LogTransport, LoggerConfig } from './logging';
 
 // Provider Factory
 export {

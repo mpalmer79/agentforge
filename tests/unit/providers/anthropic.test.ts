@@ -76,7 +76,9 @@ describe('AnthropicProvider', () => {
       const requestBody = JSON.parse(mockFetch.mock.calls[0][1].body);
 
       expect(requestBody.system).toBe('You are helpful');
-      expect(requestBody.messages.find((m: { role: string }) => m.role === 'system')).toBeUndefined();
+      expect(
+        requestBody.messages.find((m: { role: string }) => m.role === 'system')
+      ).toBeUndefined();
     });
 
     it('should handle tool use in response', async () => {

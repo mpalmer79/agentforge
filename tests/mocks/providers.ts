@@ -1,10 +1,5 @@
 import { vi } from 'vitest';
-import type {
-  Provider,
-  CompletionRequest,
-  CompletionResponse,
-  StreamChunk,
-} from '../../src/types';
+import type { Provider, CompletionRequest, CompletionResponse, StreamChunk } from '../../src/types';
 
 /**
  * Create a mock provider for testing

@@ -1,6 +1,6 @@
 /**
  * Cohere Provider
- * 
+ *
  * Supports Command, Command-R, and Command-R+ models
  */
 
@@ -30,11 +30,14 @@ interface CohereRequest {
   tools?: Array<{
     name: string;
     description: string;
-    parameter_definitions: Record<string, {
-      type: string;
-      description?: string;
-      required?: boolean;
-    }>;
+    parameter_definitions: Record<
+      string,
+      {
+        type: string;
+        description?: string;
+        required?: boolean;
+      }
+    >;
   }>;
   temperature?: number;
   max_tokens?: number;
@@ -63,7 +66,12 @@ interface CohereResponse {
 }
 
 interface CohereStreamEvent {
-  event_type: 'stream-start' | 'text-generation' | 'tool-calls-chunk' | 'tool-calls-generation' | 'stream-end';
+  event_type:
+    | 'stream-start'
+    | 'text-generation'
+    | 'tool-calls-chunk'
+    | 'tool-calls-generation'
+    | 'stream-end';
   text?: string;
   response?: CohereResponse;
   tool_calls?: Array<{
@@ -80,14 +88,14 @@ export interface CohereProviderConfig extends ProviderConfig {
 
 /**
  * Cohere provider implementation
- * 
+ *
  * @example
  * ```typescript
  * const cohere = new CohereProvider({
  *   apiKey: process.env.COHERE_API_KEY,
  *   model: 'command-r-plus',
  * });
- * 
+ *
  * const response = await cohere.complete({
  *   messages: [{ role: 'user', content: 'Hello!' }],
  * });
@@ -185,10 +193,7 @@ export class CohereProvider extends BaseProvider {
   /**
    * Cohere uses NDJSON streaming
    */
-  private async *fetchStreamCohere(
-    endpoint: string,
-    options: RequestInit
-  ): AsyncIterable<string> {
+  private async *fetchStreamCohere(endpoint: string, options: RequestInit): AsyncIterable<string> {
     const url = `${this.baseURL}${endpoint}`;
 
     const response = await fetch(url, {
@@ -242,7 +247,7 @@ export class CohereProvider extends BaseProvider {
 
   private buildRequestBody(request: CompletionRequest): CohereRequest {
     const messages = request.messages;
-    const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
+    const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user');
 
     const body: CohereRequest = {
       message: lastUserMessage?.content ?? '',
@@ -250,23 +255,23 @@ export class CohereProvider extends BaseProvider {
     };
 
     // Extract system message as preamble
-    const systemMessage = messages.find(m => m.role === 'system');
+    const systemMessage = messages.find((m) => m.role === 'system');
     if (systemMessage) {
       body.preamble = systemMessage.content;
     }
 
     // Build chat history (excluding last user message and system)
     const history = messages
-      .filter(m => m.role !== 'system' && m !== lastUserMessage)
-      .map(m => this.convertMessage(m));
-    
+      .filter((m) => m.role !== 'system' && m !== lastUserMessage)
+      .map((m) => this.convertMessage(m));
+
     if (history.length > 0) {
       body.chat_history = history;
     }
 
     // Convert tools
     if (request.tools && request.tools.length > 0) {
-      body.tools = request.tools.map(tool => ({
+      body.tools = request.tools.map((tool) => ({
         name: tool.function.name,
         description: tool.function.description ?? '',
         parameter_definitions: this.convertParameters(tool.function.parameters),
@@ -353,9 +358,7 @@ export class CohereProvider extends BaseProvider {
     return result;
   }
 
-  private mapFinishReason(
-    reason?: string
-  ): CompletionResponse['finishReason'] {
+  private mapFinishReason(reason?: string): CompletionResponse['finishReason'] {
     switch (reason) {
       case 'COMPLETE':
         return 'stop';

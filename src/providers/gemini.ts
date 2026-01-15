@@ -1,6 +1,6 @@
 /**
  * Google Gemini Provider
- * 
+ *
  * Supports Gemini Pro, Gemini Pro Vision, and Gemini 1.5 models
  */
 
@@ -84,19 +84,23 @@ export interface GeminiProviderConfig extends ProviderConfig {
   /** Google Cloud project ID (optional) */
   projectId?: string;
   /** Safety settings threshold */
-  safetyThreshold?: 'BLOCK_NONE' | 'BLOCK_LOW_AND_ABOVE' | 'BLOCK_MEDIUM_AND_ABOVE' | 'BLOCK_ONLY_HIGH';
+  safetyThreshold?:
+    | 'BLOCK_NONE'
+    | 'BLOCK_LOW_AND_ABOVE'
+    | 'BLOCK_MEDIUM_AND_ABOVE'
+    | 'BLOCK_ONLY_HIGH';
 }
 
 /**
  * Google Gemini provider implementation
- * 
+ *
  * @example
  * ```typescript
  * const gemini = new GeminiProvider({
  *   apiKey: process.env.GOOGLE_API_KEY,
  *   model: 'gemini-1.5-pro',
  * });
- * 
+ *
  * const response = await gemini.complete({
  *   messages: [{ role: 'user', content: 'Hello!' }],
  * });
@@ -157,19 +161,21 @@ export class GeminiProvider extends BaseProvider {
         };
 
         // Extract text content
-        const textPart = candidate.content?.parts?.find(p => p.text);
+        const textPart = candidate.content?.parts?.find((p) => p.text);
         if (textPart?.text) {
           streamChunk.delta.content = textPart.text;
         }
 
         // Extract function calls
-        const functionPart = candidate.content?.parts?.find(p => p.functionCall);
+        const functionPart = candidate.content?.parts?.find((p) => p.functionCall);
         if (functionPart?.functionCall) {
-          streamChunk.delta.toolCalls = [{
-            id: `call-${Date.now()}`,
-            name: functionPart.functionCall.name,
-            arguments: functionPart.functionCall.args,
-          }];
+          streamChunk.delta.toolCalls = [
+            {
+              id: `call-${Date.now()}`,
+              name: functionPart.functionCall.name,
+              arguments: functionPart.functionCall.args,
+            },
+          ];
         }
 
         yield streamChunk;
@@ -182,10 +188,7 @@ export class GeminiProvider extends BaseProvider {
   /**
    * Gemini uses a different SSE format
    */
-  private async *fetchStreamGemini(
-    endpoint: string,
-    options: RequestInit
-  ): AsyncIterable<string> {
+  private async *fetchStreamGemini(endpoint: string, options: RequestInit): AsyncIterable<string> {
     const url = `${this.baseURL}${endpoint}`;
 
     const response = await fetch(url, {
@@ -249,7 +252,7 @@ export class GeminiProvider extends BaseProvider {
     };
 
     // Extract system instruction
-    const systemMessage = request.messages.find(m => m.role === 'system');
+    const systemMessage = request.messages.find((m) => m.role === 'system');
     if (systemMessage) {
       body.systemInstruction = {
         parts: [{ text: systemMessage.content }],
@@ -267,13 +270,15 @@ export class GeminiProvider extends BaseProvider {
 
     // Convert tools
     if (request.tools && request.tools.length > 0) {
-      body.tools = [{
-        functionDeclarations: request.tools.map(tool => ({
-          name: tool.function.name,
-          description: tool.function.description ?? '',
-          parameters: tool.function.parameters as Record<string, unknown>,
-        })),
-      }];
+      body.tools = [
+        {
+          functionDeclarations: request.tools.map((tool) => ({
+            name: tool.function.name,
+            description: tool.function.description ?? '',
+            parameters: tool.function.parameters as Record<string, unknown>,
+          })),
+        },
+      ];
     }
 
     return body;
@@ -281,8 +286,8 @@ export class GeminiProvider extends BaseProvider {
 
   private convertMessages(messages: Message[]): GeminiContent[] {
     return messages
-      .filter(msg => msg.role !== 'system') // System is handled separately
-      .map(msg => ({
+      .filter((msg) => msg.role !== 'system') // System is handled separately
+      .map((msg) => ({
         role: this.mapRole(msg.role),
         parts: [{ text: msg.content }],
       }));
@@ -305,8 +310,8 @@ export class GeminiProvider extends BaseProvider {
       throw new Error('No response candidates returned');
     }
 
-    const textPart = candidate.content.parts.find(p => p.text);
-    const functionPart = candidate.content.parts.find(p => p.functionCall);
+    const textPart = candidate.content.parts.find((p) => p.text);
+    const functionPart = candidate.content.parts.find((p) => p.functionCall);
 
     const result: CompletionResponse = {
       id: `gemini-${Date.now()}`,
@@ -315,11 +320,13 @@ export class GeminiProvider extends BaseProvider {
     };
 
     if (functionPart?.functionCall) {
-      result.toolCalls = [{
-        id: `call-${Date.now()}`,
-        name: functionPart.functionCall.name,
-        arguments: functionPart.functionCall.args,
-      }];
+      result.toolCalls = [
+        {
+          id: `call-${Date.now()}`,
+          name: functionPart.functionCall.name,
+          arguments: functionPart.functionCall.args,
+        },
+      ];
     }
 
     if (response.usageMetadata) {
@@ -333,9 +340,7 @@ export class GeminiProvider extends BaseProvider {
     return result;
   }
 
-  private mapFinishReason(
-    reason?: string
-  ): CompletionResponse['finishReason'] {
+  private mapFinishReason(reason?: string): CompletionResponse['finishReason'] {
     switch (reason) {
       case 'STOP':
         return 'stop';

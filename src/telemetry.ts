@@ -31,13 +31,7 @@ export interface Metric {
   tags: Record<string, string>;
 }
 
-export type MetricUnit = 
-  | 'ms' 
-  | 'bytes' 
-  | 'tokens' 
-  | 'count' 
-  | 'percent' 
-  | 'requests_per_second';
+export type MetricUnit = 'ms' | 'bytes' | 'tokens' | 'count' | 'percent' | 'requests_per_second';
 
 export interface TelemetryEvent {
   type: 'span' | 'metric' | 'log';
@@ -60,34 +54,34 @@ export interface LogEntry {
 export interface TelemetryHooks {
   /** Called when a new trace starts */
   onTraceStart?: (traceId: string, metadata: Record<string, unknown>) => void;
-  
+
   /** Called when a trace ends */
   onTraceEnd?: (traceId: string, spans: Span[]) => void;
-  
+
   /** Called for each span */
   onSpan?: (span: Span) => void;
-  
+
   /** Called for each metric */
   onMetric?: (metric: Metric) => void;
-  
+
   /** Called for logs */
   onLog?: (entry: LogEntry) => void;
-  
+
   /** Called on provider request start */
   onProviderRequest?: (provider: string, request: CompletionRequest) => void;
-  
+
   /** Called on provider response */
   onProviderResponse?: (provider: string, response: CompletionResponse, durationMs: number) => void;
-  
+
   /** Called on provider error */
   onProviderError?: (provider: string, error: Error, durationMs: number) => void;
-  
+
   /** Called on tool execution start */
   onToolStart?: (toolName: string, args: Record<string, unknown>) => void;
-  
+
   /** Called on tool execution end */
   onToolEnd?: (toolName: string, result: ToolResult, durationMs: number) => void;
-  
+
   /** Called on token usage */
   onTokenUsage?: (usage: { prompt: number; completion: number; total: number }) => void;
 }
@@ -112,7 +106,7 @@ export class TelemetryCollector {
 
   startTrace(metadata: Record<string, unknown> = {}): string {
     if (!this.enabled) return '';
-    
+
     const traceId = this.generateTraceId();
     this.spans.set(traceId, []);
     this.hooks.onTraceStart?.(traceId, metadata);
@@ -121,7 +115,7 @@ export class TelemetryCollector {
 
   endTrace(traceId: string): Span[] {
     if (!this.enabled) return [];
-    
+
     const spans = this.spans.get(traceId) ?? [];
     this.hooks.onTraceEnd?.(traceId, spans);
     this.spans.delete(traceId);
@@ -135,7 +129,7 @@ export class TelemetryCollector {
     parentId?: string
   ): string {
     if (!this.enabled) return '';
-    
+
     const span: Span = {
       id: this.generateSpanId(),
       traceId,
@@ -151,9 +145,13 @@ export class TelemetryCollector {
     return span.id;
   }
 
-  endSpan(spanId: string, status: Span['status'] = 'ok', attributes: Record<string, unknown> = {}): void {
+  endSpan(
+    spanId: string,
+    status: Span['status'] = 'ok',
+    attributes: Record<string, unknown> = {}
+  ): void {
     if (!this.enabled) return;
-    
+
     const span = this.activeSpans.get(spanId);
     if (!span) return;
 
@@ -173,7 +171,7 @@ export class TelemetryCollector {
 
   addSpanEvent(spanId: string, name: string, attributes?: Record<string, unknown>): void {
     if (!this.enabled) return;
-    
+
     const span = this.activeSpans.get(spanId);
     if (span) {
       span.events.push({ name, timestamp: Date.now(), attributes });
@@ -189,7 +187,7 @@ export class TelemetryCollector {
     tags: Record<string, string> = {}
   ): void {
     if (!this.enabled) return;
-    
+
     const metric: Metric = {
       name,
       value,
@@ -223,7 +221,7 @@ export class TelemetryCollector {
 
   log(level: LogEntry['level'], message: string, attributes?: Record<string, unknown>): void {
     if (!this.enabled) return;
-    
+
     const entry: LogEntry = {
       level,
       message,
@@ -259,7 +257,7 @@ export class TelemetryCollector {
   trackProviderResponse(provider: string, response: CompletionResponse, durationMs: number): void {
     this.hooks.onProviderResponse?.(provider, response, durationMs);
     this.recordLatency('provider.request.duration', durationMs, { provider });
-    
+
     if (response.usage) {
       this.hooks.onTokenUsage?.({
         prompt: response.usage.promptTokens,
@@ -267,7 +265,9 @@ export class TelemetryCollector {
         total: response.usage.totalTokens,
       });
       this.recordTokens('provider.tokens.prompt', response.usage.promptTokens, { provider });
-      this.recordTokens('provider.tokens.completion', response.usage.completionTokens, { provider });
+      this.recordTokens('provider.tokens.completion', response.usage.completionTokens, {
+        provider,
+      });
     }
   }
 
@@ -285,7 +285,7 @@ export class TelemetryCollector {
   trackToolEnd(toolName: string, result: ToolResult, durationMs: number): void {
     this.hooks.onToolEnd?.(toolName, result, durationMs);
     this.recordLatency('tool.execution.duration', durationMs, { tool: toolName });
-    
+
     if (result.error) {
       this.incrementCounter('tool.errors', { tool: toolName });
     }
@@ -380,7 +380,10 @@ export function createBatchingExporter(
 /**
  * Create OpenTelemetry-compatible exporter
  */
-export function createOTLPExporter(endpoint: string, headers: Record<string, string> = {}): TelemetryHooks {
+export function createOTLPExporter(
+  endpoint: string,
+  headers: Record<string, string> = {}
+): TelemetryHooks {
   const sendSpans = async (spans: Span[]) => {
     try {
       await fetch(`${endpoint}/v1/traces`, {
@@ -390,25 +393,29 @@ export function createOTLPExporter(endpoint: string, headers: Record<string, str
           ...headers,
         },
         body: JSON.stringify({
-          resourceSpans: [{
-            resource: { attributes: [] },
-            scopeSpans: [{
-              scope: { name: 'agentforge' },
-              spans: spans.map(span => ({
-                traceId: span.traceId,
-                spanId: span.id,
-                parentSpanId: span.parentId,
-                name: span.name,
-                startTimeUnixNano: span.startTime * 1_000_000,
-                endTimeUnixNano: (span.endTime ?? span.startTime) * 1_000_000,
-                status: { code: span.status === 'ok' ? 1 : 2 },
-                attributes: Object.entries(span.attributes).map(([k, v]) => ({
-                  key: k,
-                  value: { stringValue: String(v) },
-                })),
-              })),
-            }],
-          }],
+          resourceSpans: [
+            {
+              resource: { attributes: [] },
+              scopeSpans: [
+                {
+                  scope: { name: 'agentforge' },
+                  spans: spans.map((span) => ({
+                    traceId: span.traceId,
+                    spanId: span.id,
+                    parentSpanId: span.parentId,
+                    name: span.name,
+                    startTimeUnixNano: span.startTime * 1_000_000,
+                    endTimeUnixNano: (span.endTime ?? span.startTime) * 1_000_000,
+                    status: { code: span.status === 'ok' ? 1 : 2 },
+                    attributes: Object.entries(span.attributes).map(([k, v]) => ({
+                      key: k,
+                      value: { stringValue: String(v) },
+                    })),
+                  })),
+                },
+              ],
+            },
+          ],
         }),
       });
     } catch {

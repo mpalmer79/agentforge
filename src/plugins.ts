@@ -86,14 +86,14 @@ export interface Plugin {
 
 /**
  * Manages plugin registration and lifecycle
- * 
+ *
  * @example
  * ```typescript
  * const manager = new PluginManager(agent, eventEmitter);
- * 
+ *
  * await manager.register(analyticsPlugin);
  * await manager.register(loggingPlugin);
- * 
+ *
  * // Later
  * await manager.unregister('analytics');
  * ```
@@ -148,7 +148,9 @@ export class PluginManager {
     // Subscribe to events and track cleanup functions
     const cleanups: Array<() => void> = [];
     if (plugin.events) {
-      const eventEntries = Object.entries(plugin.events) as Array<[EventName, EventListener<EventName>]>;
+      const eventEntries = Object.entries(plugin.events) as Array<
+        [EventName, EventListener<EventName>]
+      >;
       for (const [eventName, listener] of eventEntries) {
         if (listener) {
           const unsubscribe = this.events.on(eventName, listener);
@@ -318,9 +320,8 @@ export const telemetryPlugin = definePlugin({
 
   events: {
     'agent:start': ({ input }) => {
-      const inputPreview = typeof input === 'string' 
-        ? input.slice(0, 100) 
-        : `[${input.length} messages]`;
+      const inputPreview =
+        typeof input === 'string' ? input.slice(0, 100) : `[${input.length} messages]`;
       console.log(`[Telemetry] Agent started: ${inputPreview}`);
     },
 

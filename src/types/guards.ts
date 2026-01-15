@@ -45,7 +45,9 @@ export function isToolMessage(message: Message): message is ToolMessage {
 /**
  * Check if a message has tool calls
  */
-export function hasToolCalls(message: Message): message is AssistantMessage & { toolCalls: ToolCall[] } {
+export function hasToolCalls(
+  message: Message
+): message is AssistantMessage & { toolCalls: ToolCall[] } {
   return (
     isAssistantMessage(message) &&
     Array.isArray((message as AssistantMessage).toolCalls) &&
@@ -104,10 +106,7 @@ export function isToolResult(value: unknown): value is ToolResult {
 
   const tr = value as Record<string, unknown>;
 
-  return (
-    typeof tr.toolCallId === 'string' &&
-    'result' in tr
-  );
+  return typeof tr.toolCallId === 'string' && 'result' in tr;
 }
 
 /**
@@ -121,9 +120,7 @@ export function isProvider(value: unknown): value is Provider {
   const p = value as Record<string, unknown>;
 
   return (
-    typeof p.name === 'string' &&
-    typeof p.complete === 'function' &&
-    typeof p.stream === 'function'
+    typeof p.name === 'string' && typeof p.complete === 'function' && typeof p.stream === 'function'
   );
 }
 
@@ -173,11 +170,7 @@ export function isStreamChunk(value: unknown): value is StreamChunk {
 
   const c = value as Record<string, unknown>;
 
-  return (
-    typeof c.id === 'string' &&
-    typeof c.delta === 'object' &&
-    c.delta !== null
-  );
+  return typeof c.id === 'string' && typeof c.delta === 'object' && c.delta !== null;
 }
 
 // ============================================
@@ -285,10 +278,7 @@ export function assertTool(value: unknown, name = 'value'): asserts value is Too
 /**
  * Assert that a value is defined
  */
-export function assertDefined<T>(
-  value: T | null | undefined,
-  name = 'value'
-): asserts value is T {
+export function assertDefined<T>(value: T | null | undefined, name = 'value'): asserts value is T {
   if (!isDefined(value)) {
     throw new TypeError(`Expected ${name} to be defined, got ${value}`);
   }
@@ -297,10 +287,7 @@ export function assertDefined<T>(
 /**
  * Assert that a value is a non-empty string
  */
-export function assertNonEmptyString(
-  value: unknown,
-  name = 'value'
-): asserts value is string {
+export function assertNonEmptyString(value: unknown, name = 'value'): asserts value is string {
   if (!isNonEmptyString(value)) {
     throw new TypeError(`Expected ${name} to be a non-empty string`);
   }

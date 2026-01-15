@@ -35,19 +35,15 @@ describe('RequestBatcher', () => {
 
   it('should deduplicate identical requests', async () => {
     const provider = createMockProvider();
-    const batcher = new RequestBatcher(provider, { 
-      maxBatchSize: 3, 
+    const batcher = new RequestBatcher(provider, {
+      maxBatchSize: 3,
       maxWaitMs: 10,
       deduplicate: true,
     });
 
     const sameRequest = createRequest('same');
 
-    const promises = [
-      batcher.add(sameRequest),
-      batcher.add(sameRequest),
-      batcher.add(sameRequest),
-    ];
+    const promises = [batcher.add(sameRequest), batcher.add(sameRequest), batcher.add(sameRequest)];
 
     const results = await Promise.all(promises);
 
@@ -61,9 +57,9 @@ describe('RequestBatcher', () => {
     const batcher = new RequestBatcher(provider, { maxBatchSize: 10, maxWaitMs: 1000 });
 
     const promise = batcher.add(createRequest('test'));
-    
+
     expect(batcher.pendingCount).toBe(1);
-    
+
     await batcher.flush();
     await promise;
 
@@ -75,7 +71,7 @@ describe('RequestDeduplicator', () => {
   const createMockProvider = (): Provider => ({
     name: 'mock',
     complete: vi.fn().mockImplementation(async () => {
-      await new Promise(r => setTimeout(r, 50));
+      await new Promise((r) => setTimeout(r, 50));
       return { id: 'resp', content: 'Response', finishReason: 'stop' };
     }),
     stream: vi.fn(),
@@ -91,11 +87,7 @@ describe('RequestDeduplicator', () => {
 
     const request = createRequest('same');
 
-    const promises = [
-      deduper.execute(request),
-      deduper.execute(request),
-      deduper.execute(request),
-    ];
+    const promises = [deduper.execute(request), deduper.execute(request), deduper.execute(request)];
 
     await Promise.all(promises);
 
@@ -123,11 +115,11 @@ describe('RequestDeduplicator', () => {
     const deduper = new RequestDeduplicator(provider);
 
     const promise = deduper.execute(createRequest('test'));
-    
+
     expect(deduper.inflightCount).toBe(1);
-    
+
     await promise;
-    
+
     expect(deduper.inflightCount).toBe(0);
   });
 });
@@ -154,7 +146,7 @@ describe('RateLimitedQueue', () => {
   const createSlowMockProvider = (): Provider => ({
     name: 'mock',
     complete: vi.fn().mockImplementation(async () => {
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, 500));
       return { id: 'resp', content: 'Response', finishReason: 'stop' };
     }),
     stream: vi.fn(),
@@ -181,7 +173,7 @@ describe('RateLimitedQueue', () => {
 
     // Add first request - this will start processing
     const promise1 = queue.add(createRequest('first'));
-    
+
     // Add second request - this should be queued (rate limited)
     const promise2 = queue.add(createRequest('second'));
 

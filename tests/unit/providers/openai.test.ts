@@ -110,7 +110,9 @@ describe('OpenAIProvider', () => {
 
       mockFetchResponse({
         id: 'chatcmpl-123',
-        choices: [{ index: 0, message: { role: 'assistant', content: 'OK' }, finish_reason: 'stop' }],
+        choices: [
+          { index: 0, message: { role: 'assistant', content: 'OK' }, finish_reason: 'stop' },
+        ],
       });
 
       await provider.complete({
@@ -150,7 +152,9 @@ describe('OpenAIProvider', () => {
 
       mockFetchResponse({
         id: 'chatcmpl-123',
-        choices: [{ index: 0, message: { role: 'assistant', content: 'Done' }, finish_reason: 'stop' }],
+        choices: [
+          { index: 0, message: { role: 'assistant', content: 'Done' }, finish_reason: 'stop' },
+        ],
       });
 
       await provider.complete({

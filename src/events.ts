@@ -11,37 +11,37 @@ import type { Message, ToolCall, ToolResult, CompletionResponse } from './types'
 export interface AgentEvents {
   /** Emitted before a request is sent to the provider */
   'request:start': { messages: Message[]; timestamp: number };
-  
+
   /** Emitted after a response is received */
   'request:end': { response: CompletionResponse; durationMs: number; timestamp: number };
-  
+
   /** Emitted when a request fails */
   'request:error': { error: Error; timestamp: number };
-  
+
   /** Emitted before a tool is executed */
   'tool:start': { toolCall: ToolCall; timestamp: number };
-  
+
   /** Emitted after a tool completes */
   'tool:end': { toolCall: ToolCall; result: ToolResult; durationMs: number; timestamp: number };
-  
+
   /** Emitted when a tool fails */
   'tool:error': { toolCall: ToolCall; error: Error; timestamp: number };
-  
+
   /** Emitted when streaming content is received */
   'stream:chunk': { content: string; timestamp: number };
-  
+
   /** Emitted when streaming completes */
   'stream:end': { fullContent: string; timestamp: number };
-  
+
   /** Emitted when memory is trimmed */
   'memory:trim': { before: number; after: number; strategy: string; timestamp: number };
-  
+
   /** Emitted when agent run starts */
   'agent:start': { input: string | Message[]; timestamp: number };
-  
+
   /** Emitted when agent run completes */
   'agent:end': { iterations: number; durationMs: number; timestamp: number };
-  
+
   /** Emitted for custom plugin events */
   'plugin:event': { pluginName: string; eventName: string; data: unknown; timestamp: number };
 }
@@ -56,15 +56,15 @@ export type EventListener<E extends EventName> = (payload: EventPayload<E>) => v
 
 /**
  * Type-safe event emitter for AgentForge
- * 
+ *
  * @example
  * ```typescript
  * const emitter = new EventEmitter();
- * 
+ *
  * emitter.on('tool:start', ({ toolCall }) => {
  *   console.log(`Executing tool: ${toolCall.name}`);
  * });
- * 
+ *
  * emitter.on('request:end', ({ durationMs }) => {
  *   console.log(`Request took ${durationMs}ms`);
  * });

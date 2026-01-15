@@ -216,9 +216,7 @@ describe('middleware', () => {
 
       // Should not throw for first 5 requests
       for (let i = 0; i < 5; i++) {
-        await expect(
-          composed.runBeforeRequest(createMockContext())
-        ).resolves.toBeDefined();
+        await expect(composed.runBeforeRequest(createMockContext())).resolves.toBeDefined();
       }
     });
 
@@ -232,9 +230,9 @@ describe('middleware', () => {
       await composed.runBeforeRequest(createMockContext());
       await composed.runBeforeRequest(createMockContext());
 
-      await expect(
-        composed.runBeforeRequest(createMockContext())
-      ).rejects.toThrow(/Rate limit exceeded/);
+      await expect(composed.runBeforeRequest(createMockContext())).rejects.toThrow(
+        /Rate limit exceeded/
+      );
     });
 
     it('should call onRateLimited callback', async () => {
@@ -270,9 +268,7 @@ describe('middleware', () => {
       vi.advanceTimersByTime(61000);
 
       // Should work again
-      await expect(
-        composed.runBeforeRequest(createMockContext())
-      ).resolves.toBeDefined();
+      await expect(composed.runBeforeRequest(createMockContext())).resolves.toBeDefined();
     });
   });
 

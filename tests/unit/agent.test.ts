@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Agent } from '../../src/agent';
-import { createMockProvider, createToolCallingMockProvider, createErrorMockProvider } from '../mocks/providers';
+import {
+  createMockProvider,
+  createToolCallingMockProvider,
+  createErrorMockProvider,
+} from '../mocks/providers';
 import { calculatorTool, weatherTool, createErrorTool } from '../mocks/tools';
 import { createMiddleware } from '../../src/middleware';
 
@@ -126,7 +130,9 @@ describe('Agent', () => {
         complete: vi.fn().mockResolvedValue({
           id: 'resp',
           content: '',
-          toolCalls: [{ id: 'tc', name: 'calculator', arguments: { operation: 'add', a: 1, b: 1 } }],
+          toolCalls: [
+            { id: 'tc', name: 'calculator', arguments: { operation: 'add', a: 1, b: 1 } },
+          ],
           finishReason: 'tool_calls',
         }),
         stream: vi.fn(),
@@ -158,9 +164,9 @@ describe('Agent', () => {
       // Abort immediately
       abortController.abort();
 
-      await expect(
-        agent.run('Hello', { signal: abortController.signal })
-      ).rejects.toThrow(/aborted/);
+      await expect(agent.run('Hello', { signal: abortController.signal })).rejects.toThrow(
+        /aborted/
+      );
     });
 
     it('should include usage statistics', async () => {

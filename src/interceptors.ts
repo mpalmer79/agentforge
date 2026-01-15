@@ -1,6 +1,6 @@
 /**
  * Request Interceptor System
- * 
+ *
  * Advanced request/response manipulation pipeline:
  * - Pre-request transformation
  * - Post-response transformation
@@ -159,7 +159,10 @@ export class InterceptorChain {
           break;
         }
       } catch (error) {
-        this.logger.error('Response interceptor failed', error instanceof Error ? error : undefined);
+        this.logger.error(
+          'Response interceptor failed',
+          error instanceof Error ? error : undefined
+        );
         throw error;
       }
     }
@@ -207,11 +210,13 @@ export class InterceptorChain {
 /**
  * Logging interceptor - logs all requests and responses
  */
-export function createLoggingInterceptor(options: {
-  logRequests?: boolean;
-  logResponses?: boolean;
-  redactContent?: boolean;
-} = {}): { request: RequestInterceptor; response: ResponseInterceptor } {
+export function createLoggingInterceptor(
+  options: {
+    logRequests?: boolean;
+    logResponses?: boolean;
+    redactContent?: boolean;
+  } = {}
+): { request: RequestInterceptor; response: ResponseInterceptor } {
   const { logRequests = true, logResponses = true, redactContent = false } = options;
   const logger = getLogger().child({ interceptor: 'logging' });
 
@@ -222,8 +227,8 @@ export function createLoggingInterceptor(options: {
           requestId: context.requestId,
           messageCount: request.messages.length,
           tools: request.tools?.length ?? 0,
-          lastMessage: redactContent 
-            ? '[REDACTED]' 
+          lastMessage: redactContent
+            ? '[REDACTED]'
             : request.messages[request.messages.length - 1]?.content.substring(0, 100),
         });
       }
@@ -247,12 +252,15 @@ export function createLoggingInterceptor(options: {
 /**
  * Metrics interceptor - collects timing and usage metrics
  */
-export function createMetricsInterceptor(): { request: RequestInterceptor; response: ResponseInterceptor } {
+export function createMetricsInterceptor(): {
+  request: RequestInterceptor;
+  response: ResponseInterceptor;
+} {
   const telemetry = getTelemetry();
 
   return {
     request: async (request, _context) => {
-      telemetry.incrementCounter('interceptor.requests', { 
+      telemetry.incrementCounter('interceptor.requests', {
         messageCount: String(request.messages.length),
       });
       return { data: request, continue: true };
@@ -299,7 +307,7 @@ export function createContentFilterInterceptor(options: {
     request: async (request, _context) => {
       if (!filterInput) return { data: request, continue: true };
 
-      const filteredMessages = request.messages.map(msg => ({
+      const filteredMessages = request.messages.map((msg) => ({
         ...msg,
         content: filterContent(msg.content),
       }));
@@ -326,11 +334,13 @@ export function createContentFilterInterceptor(options: {
 /**
  * Prompt injection detection interceptor
  */
-export function createInjectionDetectionInterceptor(options: {
-  patterns?: RegExp[];
-  action?: 'warn' | 'block' | 'sanitize';
-  onDetection?: (message: Message, pattern: RegExp) => void;
-} = {}): RequestInterceptor {
+export function createInjectionDetectionInterceptor(
+  options: {
+    patterns?: RegExp[];
+    action?: 'warn' | 'block' | 'sanitize';
+    onDetection?: (message: Message, pattern: RegExp) => void;
+  } = {}
+): RequestInterceptor {
   const {
     patterns = [
       /ignore\s+(previous|all)\s+(instructions?|prompts?)/i,
@@ -366,10 +376,8 @@ export function createInjectionDetectionInterceptor(options: {
           }
 
           if (action === 'sanitize') {
-            const sanitizedMessages = request.messages.map(m => 
-              m.id === message.id
-                ? { ...m, content: m.content.replace(pattern, '[REMOVED]') }
-                : m
+            const sanitizedMessages = request.messages.map((m) =>
+              m.id === message.id ? { ...m, content: m.content.replace(pattern, '[REMOVED]') } : m
             );
             return {
               data: { ...request, messages: sanitizedMessages },
@@ -410,20 +418,24 @@ export function createTransformInterceptor(options: {
 /**
  * Retry interceptor - handles retryable errors
  */
-export function createRetryErrorInterceptor(options: {
-  maxRetries?: number;
-  retryableErrors?: (error: Error) => boolean;
-  baseDelay?: number;
-  maxDelay?: number;
-} = {}): ErrorInterceptor {
+export function createRetryErrorInterceptor(
+  options: {
+    maxRetries?: number;
+    retryableErrors?: (error: Error) => boolean;
+    baseDelay?: number;
+    maxDelay?: number;
+  } = {}
+): ErrorInterceptor {
   const {
     maxRetries = 3,
     retryableErrors = (error) => {
       const msg = error.message.toLowerCase();
-      return msg.includes('timeout') || 
-             msg.includes('rate limit') || 
-             msg.includes('503') ||
-             msg.includes('429');
+      return (
+        msg.includes('timeout') ||
+        msg.includes('rate limit') ||
+        msg.includes('503') ||
+        msg.includes('429')
+      );
     },
     baseDelay = 1000,
     maxDelay = 30000,
@@ -437,7 +449,7 @@ export function createRetryErrorInterceptor(options: {
     }
 
     const currentCount = retryCounts.get(context.requestId) ?? 0;
-    
+
     if (currentCount >= maxRetries) {
       retryCounts.delete(context.requestId);
       return { retry: false };
@@ -455,18 +467,15 @@ export function createRetryErrorInterceptor(options: {
 /**
  * Circuit breaker error interceptor
  */
-export function createCircuitBreakerErrorInterceptor(options: {
-  failureThreshold?: number;
-  resetTimeoutMs?: number;
-  onOpen?: () => void;
-  onClose?: () => void;
-} = {}): ErrorInterceptor {
-  const {
-    failureThreshold = 5,
-    resetTimeoutMs = 30000,
-    onOpen,
-    onClose,
-  } = options;
+export function createCircuitBreakerErrorInterceptor(
+  options: {
+    failureThreshold?: number;
+    resetTimeoutMs?: number;
+    onOpen?: () => void;
+    onClose?: () => void;
+  } = {}
+): ErrorInterceptor {
+  const { failureThreshold = 5, resetTimeoutMs = 30000, onOpen, onClose } = options;
 
   let failures = 0;
   let circuitOpen = false;
@@ -536,17 +545,17 @@ export function composeRequestInterceptors(
 ): RequestInterceptor {
   return async (request, context) => {
     let current = request;
-    
+
     for (const interceptor of interceptors) {
       const result = await interceptor(current, context);
-      
+
       if (result.error || !result.continue) {
         return result;
       }
-      
+
       current = result.data;
     }
-    
+
     return { data: current, continue: true };
   };
 }
@@ -559,17 +568,17 @@ export function composeResponseInterceptors(
 ): ResponseInterceptor {
   return async (response, context) => {
     let current = response;
-    
+
     for (const interceptor of interceptors) {
       const result = await interceptor(current, context);
-      
+
       if (result.error || !result.continue) {
         return result;
       }
-      
+
       current = result.data;
     }
-    
+
     return { data: current, continue: true };
   };
 }

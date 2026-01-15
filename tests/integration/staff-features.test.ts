@@ -10,12 +10,14 @@ import { ProviderFactory } from '../../src/provider-factory';
 // Mock Provider
 // ============================================
 
-function createMockProvider(options: {
-  name?: string;
-  responses?: Array<Partial<CompletionResponse>>;
-  failCount?: number;
-  latencyMs?: number;
-} = {}): Provider {
+function createMockProvider(
+  options: {
+    name?: string;
+    responses?: Array<Partial<CompletionResponse>>;
+    failCount?: number;
+    latencyMs?: number;
+  } = {}
+): Provider {
   const {
     name = 'mock-provider',
     responses = [{ id: 'resp_1', content: 'Hello!', finishReason: 'stop' as const }],
@@ -30,9 +32,9 @@ function createMockProvider(options: {
     name,
     async complete() {
       callCount++;
-      
+
       if (latencyMs > 0) {
-        await new Promise(resolve => setTimeout(resolve, latencyMs));
+        await new Promise((resolve) => setTimeout(resolve, latencyMs));
       }
 
       if (callCount <= failCount) {
@@ -86,21 +88,23 @@ describe('Agent with Staff-Level Features', () => {
       await agent.run('Hello');
 
       expect(telemetryHooks.onSpan).toHaveBeenCalled();
-      const spans = telemetryHooks.onSpan.mock.calls.map(call => call[0]);
-      
-      expect(spans.some(s => s.name === 'agent.run')).toBe(true);
-      expect(spans.some(s => s.name.includes('provider'))).toBe(true);
+      const spans = telemetryHooks.onSpan.mock.calls.map((call) => call[0]);
+
+      expect(spans.some((s) => s.name === 'agent.run')).toBe(true);
+      expect(spans.some((s) => s.name.includes('provider'))).toBe(true);
     });
 
     it('should track token usage metrics', async () => {
       const agent = new Agent({
         provider: createMockProvider({
-          responses: [{
-            id: 'resp_1',
-            content: 'Hello',
-            finishReason: 'stop',
-            usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          }],
+          responses: [
+            {
+              id: 'resp_1',
+              content: 'Hello',
+              finishReason: 'stop',
+              usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
+            },
+          ],
         }),
         telemetry,
       });
@@ -108,9 +112,9 @@ describe('Agent with Staff-Level Features', () => {
       await agent.run('Test');
 
       expect(telemetryHooks.onMetric).toHaveBeenCalled();
-      const metrics = telemetryHooks.onMetric.mock.calls.map(call => call[0]);
-      
-      const tokenMetrics = metrics.filter(m => m.name.includes('tokens'));
+      const metrics = telemetryHooks.onMetric.mock.calls.map((call) => call[0]);
+
+      const tokenMetrics = metrics.filter((m) => m.name.includes('tokens'));
       expect(tokenMetrics.length).toBeGreaterThan(0);
     });
 
@@ -122,8 +126,8 @@ describe('Agent with Staff-Level Features', () => {
 
       await agent.run('Test');
 
-      const metrics = telemetryHooks.onMetric.mock.calls.map(call => call[0]);
-      const latencyMetrics = metrics.filter(m => m.unit === 'ms');
+      const metrics = telemetryHooks.onMetric.mock.calls.map((call) => call[0]);
+      const latencyMetrics = metrics.filter((m) => m.unit === 'ms');
       expect(latencyMetrics.length).toBeGreaterThan(0);
     });
   });
@@ -195,13 +199,13 @@ describe('Agent with Staff-Level Features', () => {
       expect(agent.getHealth().circuitBreaker?.state).toBe('open');
 
       // Wait for reset timeout (half-open state)
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Next request should go through (half-open allows one request)
       // Provider now succeeds (callCount > 2)
       const result = await agent.run('Test');
       expect(result.content).toBe('Success after recovery');
-      
+
       // Circuit should be closed or half-open after success
       const finalState = agent.getHealth().circuitBreaker?.state;
       expect(['closed', 'half-open']).toContain(finalState);
@@ -215,7 +219,7 @@ describe('Agent with Staff-Level Features', () => {
         name: 'counting-provider',
         async complete() {
           callCount++;
-          await new Promise(resolve => setTimeout(resolve, 50));
+          await new Promise((resolve) => setTimeout(resolve, 50));
           return { id: 'resp_1', content: 'Hello', finishReason: 'stop' };
         },
         async *stream() {
@@ -230,10 +234,7 @@ describe('Agent with Staff-Level Features', () => {
       });
 
       // Fire two identical requests concurrently
-      const [result1, result2] = await Promise.all([
-        agent.run('Hello'),
-        agent.run('Hello'),
-      ]);
+      const [result1, result2] = await Promise.all([agent.run('Hello'), agent.run('Hello')]);
 
       expect(result1.content).toBe(result2.content);
       expect(callCount).toBe(1); // Only one actual call
@@ -254,7 +255,7 @@ describe('Agent with Staff-Level Features', () => {
 
     it('should persist conversation messages', async () => {
       persistence.create();
-      
+
       const agent = new Agent({
         provider: createMockProvider(),
         telemetry,
@@ -269,15 +270,17 @@ describe('Agent with Staff-Level Features', () => {
 
     it('should track token usage in persistence', async () => {
       persistence.create();
-      
+
       const agent = new Agent({
         provider: createMockProvider({
-          responses: [{
-            id: 'resp_1',
-            content: 'Hi',
-            finishReason: 'stop',
-            usage: { promptTokens: 50, completionTokens: 25, totalTokens: 75 },
-          }],
+          responses: [
+            {
+              id: 'resp_1',
+              content: 'Hi',
+              finishReason: 'stop',
+              usage: { promptTokens: 50, completionTokens: 25, totalTokens: 75 },
+            },
+          ],
         }),
         telemetry,
         persistence: { manager: persistence },
@@ -291,7 +294,7 @@ describe('Agent with Staff-Level Features', () => {
 
     it('should record tool calls in persistence', async () => {
       persistence.create();
-      
+
       const agent = new Agent({
         provider: createMockProvider({
           responses: [
@@ -308,13 +311,15 @@ describe('Agent with Staff-Level Features', () => {
             },
           ],
         }),
-        tools: [{
-          name: 'get_time',
-          description: 'Get the current time',
-          parameters: { type: 'object', properties: {} },
-          execute: async () => ({ time: '12:00' }),
-          toJSON: () => ({ name: 'get_time', description: 'Get time', parameters: {} }),
-        }],
+        tools: [
+          {
+            name: 'get_time',
+            description: 'Get the current time',
+            parameters: { type: 'object', properties: {} },
+            execute: async () => ({ time: '12:00' }),
+            toJSON: () => ({ name: 'get_time', description: 'Get time', parameters: {} }),
+          },
+        ],
         telemetry,
         persistence: { manager: persistence },
       });
@@ -344,16 +349,18 @@ describe('Agent with Staff-Level Features', () => {
             },
           ],
         }),
-        tools: [{
-          name: 'slow_tool',
-          description: 'A slow tool',
-          parameters: { type: 'object', properties: {} },
-          execute: async () => {
-            await new Promise(resolve => setTimeout(resolve, 200));
-            return { result: 'done' };
+        tools: [
+          {
+            name: 'slow_tool',
+            description: 'A slow tool',
+            parameters: { type: 'object', properties: {} },
+            execute: async () => {
+              await new Promise((resolve) => setTimeout(resolve, 200));
+              return { result: 'done' };
+            },
+            toJSON: () => ({ name: 'slow_tool', description: 'Slow', parameters: {} }),
           },
-          toJSON: () => ({ name: 'slow_tool', description: 'Slow', parameters: {} }),
-        }],
+        ],
         telemetry,
         timeouts: {
           toolExecutionMs: 50, // Very short timeout
@@ -361,11 +368,11 @@ describe('Agent with Staff-Level Features', () => {
       });
 
       const result = await agent.run('Run slow tool');
-      
+
       // Tool should have timed out, but agent continues with error message
-      expect(result.messages.some(m => 
-        m.role === 'tool' && m.content.includes('timed out')
-      )).toBe(true);
+      expect(
+        result.messages.some((m) => m.role === 'tool' && m.content.includes('timed out'))
+      ).toBe(true);
     });
   });
 
@@ -451,8 +458,22 @@ describe('ProviderFactory Integration', () => {
     // Override with our mock providers
     (factory as any).providers.set('openai', primaryProvider);
     (factory as any).providers.set('anthropic', fallbackProvider);
-    (factory as any).stats.set('openai', { name: 'openai', type: 'openai', healthy: true, latencyMs: 0, requestCount: 0, errorCount: 0 });
-    (factory as any).stats.set('anthropic', { name: 'anthropic', type: 'anthropic', healthy: true, latencyMs: 0, requestCount: 0, errorCount: 0 });
+    (factory as any).stats.set('openai', {
+      name: 'openai',
+      type: 'openai',
+      healthy: true,
+      latencyMs: 0,
+      requestCount: 0,
+      errorCount: 0,
+    });
+    (factory as any).stats.set('anthropic', {
+      name: 'anthropic',
+      type: 'anthropic',
+      healthy: true,
+      latencyMs: 0,
+      requestCount: 0,
+      errorCount: 0,
+    });
 
     const result = await factory.complete({
       messages: [{ id: 'msg', role: 'user', content: 'Test', timestamp: Date.now() }],
@@ -467,7 +488,7 @@ describe('ProviderFactory Integration', () => {
     const mockProvider: Provider = {
       name: 'mock',
       async complete() {
-        await new Promise(r => setTimeout(r, 10));
+        await new Promise((r) => setTimeout(r, 10));
         return { id: 'resp', content: 'OK', finishReason: 'stop' };
       },
       async *stream() {},
@@ -482,9 +503,13 @@ describe('ProviderFactory Integration', () => {
 
     // Inject mock
     (factory as any).providers.set('openai', mockProvider);
-    (factory as any).stats.set('openai', { 
-      name: 'mock', type: 'openai', healthy: true, 
-      latencyMs: 0, requestCount: 0, errorCount: 0 
+    (factory as any).stats.set('openai', {
+      name: 'mock',
+      type: 'openai',
+      healthy: true,
+      latencyMs: 0,
+      requestCount: 0,
+      errorCount: 0,
     });
 
     await factory.complete({
@@ -492,8 +517,8 @@ describe('ProviderFactory Integration', () => {
     });
 
     const stats = factory.getStats();
-    const openaiStats = stats.find(s => s.type === 'openai');
-    
+    const openaiStats = stats.find((s) => s.type === 'openai');
+
     expect(openaiStats?.requestCount).toBe(1);
     expect(openaiStats?.latencyMs).toBeGreaterThan(0);
   });

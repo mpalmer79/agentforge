@@ -264,7 +264,9 @@ describe('errors', () => {
         let capturedError: AgentForgeError | null = null;
         const handler = createErrorHandler({
           rethrow: false,
-          onError: (e) => { capturedError = e; },
+          onError: (e) => {
+            capturedError = e;
+          },
         });
 
         handler(new Error('Test'));

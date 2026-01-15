@@ -13,7 +13,13 @@ import { AgentForgeError, ToolExecutionError } from './errors';
 import { composeMiddleware } from './middleware';
 import { generateId } from './utils';
 import { getTelemetry, TelemetryCollector } from './telemetry';
-import { CircuitBreaker, RequestDeduplicator, Bulkhead, retryWithBackoff, withTimeout } from './resilience';
+import {
+  CircuitBreaker,
+  RequestDeduplicator,
+  Bulkhead,
+  retryWithBackoff,
+  withTimeout,
+} from './resilience';
 import { getTokenCounter, calculateBudget } from './tokenizer';
 import { sanitizeCompletionResponse } from './schema';
 import { ConversationManager } from './persistence';
@@ -129,7 +135,11 @@ export class Agent {
         failureThreshold: config.circuitBreaker?.failureThreshold ?? 5,
         resetTimeoutMs: config.circuitBreaker?.resetTimeoutMs ?? 30000,
         onStateChange: (from, to) => {
-          this.telemetry.info('Circuit breaker state change', { from, to, provider: this.provider.name });
+          this.telemetry.info('Circuit breaker state change', {
+            from,
+            to,
+            provider: this.provider.name,
+          });
         },
       });
     }
@@ -187,7 +197,9 @@ export class Agent {
 
       return await this.executeRun(input, options, traceId);
     } catch (error) {
-      this.telemetry.endSpan(runSpanId, 'error', { errorMessage: error instanceof Error ? error.message : String(error) });
+      this.telemetry.endSpan(runSpanId, 'error', {
+        errorMessage: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     } finally {
       this.telemetry.endSpan(runSpanId, 'ok');
@@ -227,7 +239,7 @@ export class Agent {
       if (this.tokenBudgetConfig) {
         const budget = calculateBudget(
           this.provider.name,
-          managedMessages.map(m => ({ role: m.role, content: m.content })),
+          managedMessages.map((m) => ({ role: m.role, content: m.content })),
           this.tokenBudgetConfig.reserveForResponse ?? 1000
         );
 
@@ -273,12 +285,18 @@ export class Agent {
           ? sanitizeCompletionResponse(response)
           : response;
 
-        const processedResponse = await this.middleware.runAfterResponse(validatedResponse, processedContext);
+        const processedResponse = await this.middleware.runAfterResponse(
+          validatedResponse,
+          processedContext
+        );
 
         // Track token usage
         if (processedResponse.usage) {
           this.telemetry.recordTokens('agent.tokens.prompt', processedResponse.usage.promptTokens);
-          this.telemetry.recordTokens('agent.tokens.completion', processedResponse.usage.completionTokens);
+          this.telemetry.recordTokens(
+            'agent.tokens.completion',
+            processedResponse.usage.completionTokens
+          );
 
           if (this.persistence) {
             this.persistence.updateTokenCount(processedResponse.usage.totalTokens);
@@ -361,10 +379,7 @@ export class Agent {
   /**
    * Execute provider call with all resilience patterns
    */
-  private async executeProviderCall(
-    context: MiddlewareContext,
-    traceId?: string
-  ): Promise<any> {
+  private async executeProviderCall(context: MiddlewareContext, traceId?: string): Promise<any> {
     const spanId = traceId
       ? this.telemetry.startSpan(traceId, 'provider.complete', { provider: this.provider.name })
       : '';
@@ -399,7 +414,10 @@ export class Agent {
 
       // Apply circuit breaker if configured
       if (this.circuitBreaker) {
-        callFn = ((originalFn) => () => this.circuitBreaker!.execute(originalFn))(callFn);
+        callFn = (
+          (originalFn) => () =>
+            this.circuitBreaker!.execute(originalFn)
+        )(callFn);
       }
 
       // Apply retry with backoff

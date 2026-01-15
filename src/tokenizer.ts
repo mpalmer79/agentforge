@@ -1,6 +1,6 @@
 /**
  * Token counting and management utilities
- * 
+ *
  * Provides accurate token counting for different model families.
  * Falls back to estimation when exact counting isn't available.
  */
@@ -36,16 +36,16 @@ export interface TokenBudget {
  */
 class BPEApproximation implements TokenCounter {
   modelFamily: ModelFamily;
-  
+
   // Overhead per message for chat format
   private readonly messageOverhead: number;
-  
+
   // Average characters per token for different content types (used for simple estimation fallback)
   private readonly charsPerToken: number;
 
   constructor(modelFamily: ModelFamily = 'gpt-4') {
     this.modelFamily = modelFamily;
-    
+
     // Different models have different tokenization characteristics
     switch (modelFamily) {
       case 'gpt-4':
@@ -69,53 +69,53 @@ class BPEApproximation implements TokenCounter {
 
   count(text: string): number {
     if (!text) return 0;
-    
+
     // For very short strings, use simple character-based estimation
     if (text.length < 10) {
       return Math.ceil(text.length / this.charsPerToken);
     }
-    
+
     // More sophisticated estimation for longer text
     let tokens = 0;
-    
+
     // Count words (roughly 1.3 tokens per word for English)
     const words = text.split(/\s+/).filter(Boolean);
     tokens += words.length * 1.3;
-    
+
     // Add tokens for punctuation and special characters
     const specialChars = text.match(/[^\w\s]/g) || [];
     tokens += specialChars.length * 0.5;
-    
+
     // Add tokens for numbers (often tokenized per digit)
     const numbers = text.match(/\d+/g) || [];
     for (const num of numbers) {
       tokens += Math.ceil(num.length / 2);
     }
-    
+
     // Adjust for code (typically more tokens)
     if (this.looksLikeCode(text)) {
       tokens *= 1.2;
     }
-    
+
     // Adjust for non-ASCII (typically more tokens)
     const nonAscii = text.match(/[^\x00-\x7F]/g) || [];
     tokens += nonAscii.length * 0.5;
-    
+
     return Math.ceil(tokens);
   }
 
   countMessages(messages: Array<{ role: string; content: string }>): number {
     let total = 0;
-    
+
     for (const msg of messages) {
       total += this.messageOverhead;
       total += this.count(msg.role);
       total += this.count(msg.content);
     }
-    
+
     // Add priming tokens
     total += 3;
-    
+
     return total;
   }
 
@@ -141,8 +141,8 @@ class BPEApproximation implements TokenCounter {
       /\{\s*\n/,
       /\[\s*\n/,
     ];
-    
-    return codeIndicators.some(pattern => pattern.test(text));
+
+    return codeIndicators.some((pattern) => pattern.test(text));
   }
 }
 
@@ -155,16 +155,16 @@ class UnicodeTokenCounter implements TokenCounter {
 
   count(text: string): number {
     if (!text) return 0;
-    
+
     let tokens = 0;
     const graphemes = [...new Intl.Segmenter().segment(text)];
-    
+
     for (const { segment } of graphemes) {
       // ASCII characters: roughly 4 chars per token
       if (/^[\x00-\x7F]+$/.test(segment)) {
         tokens += segment.length / 4;
       }
-      // CJK characters: roughly 1-2 chars per token  
+      // CJK characters: roughly 1-2 chars per token
       else if (/[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]/.test(segment)) {
         tokens += segment.length * 0.7;
       }
@@ -173,7 +173,7 @@ class UnicodeTokenCounter implements TokenCounter {
         tokens += segment.length / 2;
       }
     }
-    
+
     return Math.ceil(tokens);
   }
 
@@ -208,13 +208,13 @@ const counterCache = new Map<ModelFamily, TokenCounter>();
  */
 export function getTokenCounter(model: string): TokenCounter {
   const family = getModelFamily(model);
-  
+
   let counter = counterCache.get(family);
   if (!counter) {
     counter = new BPEApproximation(family);
     counterCache.set(family, counter);
   }
-  
+
   return counter;
 }
 
@@ -223,7 +223,7 @@ export function getTokenCounter(model: string): TokenCounter {
  */
 export function getModelFamily(model: string): ModelFamily {
   const normalized = model.toLowerCase();
-  
+
   if (normalized.includes('gpt-4') || normalized.includes('gpt4')) {
     return 'gpt-4';
   }
@@ -236,7 +236,7 @@ export function getModelFamily(model: string): ModelFamily {
   if (normalized.includes('gemini') || normalized.includes('palm')) {
     return 'gemini';
   }
-  
+
   return 'unknown';
 }
 
@@ -255,11 +255,11 @@ export const MODEL_CONTEXT_WINDOWS: Record<string, number> = {
   'gpt-4-turbo-preview': 128000,
   'gpt-4o': 128000,
   'gpt-4o-mini': 128000,
-  
+
   // GPT-3.5 family
   'gpt-3.5-turbo': 16385,
   'gpt-3.5-turbo-16k': 16385,
-  
+
   // Claude family
   'claude-3-opus': 200000,
   'claude-3-sonnet': 200000,
@@ -267,7 +267,7 @@ export const MODEL_CONTEXT_WINDOWS: Record<string, number> = {
   'claude-2': 100000,
   'claude-2.1': 200000,
   'claude-instant': 100000,
-  
+
   // Gemini family
   'gemini-pro': 32760,
   'gemini-1.5-pro': 1000000,
@@ -279,19 +279,19 @@ export const MODEL_CONTEXT_WINDOWS: Record<string, number> = {
  */
 export function getContextWindow(model: string): number {
   const normalized = model.toLowerCase();
-  
+
   // Exact match
   if (MODEL_CONTEXT_WINDOWS[normalized]) {
     return MODEL_CONTEXT_WINDOWS[normalized];
   }
-  
+
   // Partial match
   for (const [key, value] of Object.entries(MODEL_CONTEXT_WINDOWS)) {
     if (normalized.includes(key)) {
       return value;
     }
   }
-  
+
   // Default fallback
   return 8192;
 }
@@ -308,7 +308,7 @@ export function calculateBudget(
   const counter = getTokenCounter(model);
   const used = counter.countMessages(messages);
   const total = contextWindow - reserveForResponse;
-  
+
   return {
     total,
     used,
@@ -343,36 +343,36 @@ export function truncateToTokens(
 ): { text: string; truncated: boolean; originalTokens: number; finalTokens: number } {
   const counter = getTokenCounter('gpt-4');
   const originalTokens = counter.count(text);
-  
+
   if (originalTokens <= options.maxTokens) {
     return { text, truncated: false, originalTokens, finalTokens: originalTokens };
   }
-  
+
   const indicator = options.truncationIndicator ?? '... [truncated] ...';
   const indicatorTokens = counter.count(indicator);
   const availableTokens = options.maxTokens - indicatorTokens;
-  
+
   let result: string;
-  
+
   switch (options.strategy) {
     case 'end':
       result = truncateFromEnd(text, availableTokens, counter) + indicator;
       break;
-      
+
     case 'middle':
       const preserveStart = options.preserveStart ?? Math.floor(availableTokens * 0.7);
       const preserveEnd = options.preserveEnd ?? availableTokens - preserveStart;
       result = truncateFromMiddle(text, preserveStart, preserveEnd, indicator, counter);
       break;
-      
+
     case 'smart':
       result = smartTruncate(text, availableTokens, indicator, counter);
       break;
-      
+
     default:
       result = truncateFromEnd(text, availableTokens, counter) + indicator;
   }
-  
+
   return {
     text: result,
     truncated: true,
@@ -386,12 +386,12 @@ function truncateFromEnd(text: string, maxTokens: number, counter: TokenCounter)
   let low = 0;
   let high = text.length;
   let bestLength = 0;
-  
+
   while (low <= high) {
     const mid = Math.floor((low + high) / 2);
     const substring = text.substring(0, mid);
     const tokens = counter.count(substring);
-    
+
     if (tokens <= maxTokens) {
       bestLength = mid;
       low = mid + 1;
@@ -399,7 +399,7 @@ function truncateFromEnd(text: string, maxTokens: number, counter: TokenCounter)
       high = mid - 1;
     }
   }
-  
+
   // Try to break at word boundary
   let breakPoint = bestLength;
   for (let i = bestLength; i > Math.max(0, bestLength - 50); i--) {
@@ -408,7 +408,7 @@ function truncateFromEnd(text: string, maxTokens: number, counter: TokenCounter)
       break;
     }
   }
-  
+
   return text.substring(0, breakPoint).trim();
 }
 
@@ -420,11 +420,11 @@ function truncateFromMiddle(
   counter: TokenCounter
 ): string {
   const startText = truncateFromEnd(text, startTokens, counter);
-  
+
   // Work backwards from the end
   let endStart = text.length;
   let endText = '';
-  
+
   while (endStart > 0) {
     const candidate = text.substring(endStart);
     if (counter.count(candidate) >= endTokens) {
@@ -433,7 +433,7 @@ function truncateFromMiddle(
     }
     endStart--;
   }
-  
+
   // Find word boundary for end text
   for (let i = 0; i < Math.min(50, endText.length); i++) {
     if (/\s/.test(endText[i])) {
@@ -441,7 +441,7 @@ function truncateFromMiddle(
       break;
     }
   }
-  
+
   return `${startText}\n${indicator}\n${endText.trim()}`;
 }
 
@@ -455,7 +455,7 @@ function smartTruncate(
   const paragraphs = text.split(/\n\n+/);
   let result = '';
   let currentTokens = 0;
-  
+
   for (const para of paragraphs) {
     const paraTokens = counter.count(para);
     if (currentTokens + paraTokens <= maxTokens) {
@@ -476,11 +476,11 @@ function smartTruncate(
       break;
     }
   }
-  
+
   if (result.length < text.length) {
     result += '\n' + indicator;
   }
-  
+
   return result;
 }
 

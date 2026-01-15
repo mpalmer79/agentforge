@@ -34,18 +34,18 @@ interface BatchConfig {
 
 /**
  * Batches multiple requests together for efficiency
- * 
+ *
  * @remarks
  * Useful when making many similar requests that can be combined
  * or when implementing request coalescing.
- * 
+ *
  * @example
  * ```typescript
  * const batcher = new RequestBatcher(provider, {
  *   maxBatchSize: 5,
  *   maxWaitMs: 100,
  * });
- * 
+ *
  * // These requests will be batched together
  * const [r1, r2, r3] = await Promise.all([
  *   batcher.add(request1),
@@ -167,9 +167,8 @@ export class RequestBatcher {
         }
       } else {
         // Reject on error
-        const error = result.reason instanceof Error
-          ? result.reason
-          : new Error(String(result.reason));
+        const error =
+          result.reason instanceof Error ? result.reason : new Error(String(result.reason));
 
         // Find which request failed and reject it
         // In a real implementation, we'd track this better
@@ -226,21 +225,21 @@ export class RequestBatcher {
 
 /**
  * Deduplicates concurrent identical requests
- * 
+ *
  * @remarks
  * When multiple identical requests come in at the same time,
  * only one is actually sent and the result is shared.
- * 
+ *
  * @example
  * ```typescript
  * const deduper = new RequestDeduplicator(provider);
- * 
+ *
  * // These identical requests result in only ONE API call
  * const [r1, r2] = await Promise.all([
  *   deduper.execute(sameRequest),
  *   deduper.execute(sameRequest),
  * ]);
- * 
+ *
  * // r1 === r2 (same response object)
  * ```
  */
@@ -249,10 +248,7 @@ export class RequestDeduplicator {
   private inflight: Map<string, Promise<CompletionResponse>> = new Map();
   private keyFn: (request: CompletionRequest) => string;
 
-  constructor(
-    provider: Provider,
-    keyFn?: (request: CompletionRequest) => string
-  ) {
+  constructor(provider: Provider, keyFn?: (request: CompletionRequest) => string) {
     this.provider = provider;
     this.keyFn = keyFn ?? this.defaultKeyFn;
   }
@@ -308,13 +304,13 @@ export class RequestDeduplicator {
 
 /**
  * Queue that processes requests at a controlled rate
- * 
+ *
  * @example
  * ```typescript
  * const queue = new RateLimitedQueue(provider, {
  *   requestsPerSecond: 10,
  * });
- * 
+ *
  * // Requests are automatically throttled
  * for (const req of requests) {
  *   queue.add(req).then(handleResponse);
@@ -328,10 +324,7 @@ export class RateLimitedQueue {
   private processing = false;
   private lastProcessTime = 0;
 
-  constructor(
-    provider: Provider,
-    config: { requestsPerSecond: number }
-  ) {
+  constructor(provider: Provider, config: { requestsPerSecond: number }) {
     this.provider = provider;
     this.requestsPerSecond = config.requestsPerSecond;
   }

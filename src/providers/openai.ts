@@ -120,7 +120,8 @@ export class OpenAIProvider extends BaseProvider {
       stream: true,
     };
 
-    const toolCallsAccumulator: Map<number, { id: string; name: string; arguments: string }> = new Map();
+    const toolCallsAccumulator: Map<number, { id: string; name: string; arguments: string }> =
+      new Map();
 
     for await (const data of this.fetchStream('/chat/completions', {
       method: 'POST',
@@ -159,13 +160,11 @@ export class OpenAIProvider extends BaseProvider {
         }
 
         if (choice.finish_reason === 'tool_calls') {
-          streamChunk.delta.toolCalls = Array.from(toolCallsAccumulator.values()).map(
-            (tc) => ({
-              id: tc.id,
-              name: tc.name,
-              arguments: JSON.parse(tc.arguments || '{}'),
-            })
-          );
+          streamChunk.delta.toolCalls = Array.from(toolCallsAccumulator.values()).map((tc) => ({
+            id: tc.id,
+            name: tc.name,
+            arguments: JSON.parse(tc.arguments || '{}'),
+          }));
         }
 
         yield streamChunk;
@@ -244,9 +243,7 @@ export class OpenAIProvider extends BaseProvider {
     return result;
   }
 
-  private mapFinishReason(
-    reason: string | null
-  ): CompletionResponse['finishReason'] {
+  private mapFinishReason(reason: string | null): CompletionResponse['finishReason'] {
     switch (reason) {
       case 'stop':
         return 'stop';

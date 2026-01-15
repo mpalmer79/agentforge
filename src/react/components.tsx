@@ -1,6 +1,6 @@
 /**
  * Enhanced React Components for AgentForge
- * 
+ *
  * Production-ready UI components for building chat interfaces:
  * - ChatWindow: Complete chat interface with input
  * - MessageList: Scrollable message display
@@ -261,151 +261,148 @@ function isToolSuccess(result: ToolResult): boolean {
 // ChatWindow Component
 // ============================================
 
-export const ChatWindow = forwardRef<ChatWindowRef, ChatWindowProps>(
-  function ChatWindow(
-    {
-      messages,
-      onSendMessage,
-      isLoading = false,
-      streamingContent,
-      pendingToolCalls = [],
-      toolResults = [],
-      placeholder = 'Type a message...',
-      disabled = false,
-      className,
-      style,
-      renderMessage,
-      renderToolStatus,
-      header,
-      footer,
-      maxInputLength = 10000,
-      autoScroll = true,
-      showTimestamps = false,
-    },
-    ref
-  ) {
-    const [inputValue, setInputValue] = useState('');
-    const inputRef = useRef<HTMLTextAreaElement>(null);
-    const listRef = useRef<HTMLDivElement>(null);
+export const ChatWindow = forwardRef<ChatWindowRef, ChatWindowProps>(function ChatWindow(
+  {
+    messages,
+    onSendMessage,
+    isLoading = false,
+    streamingContent,
+    pendingToolCalls = [],
+    toolResults = [],
+    placeholder = 'Type a message...',
+    disabled = false,
+    className,
+    style,
+    renderMessage,
+    renderToolStatus,
+    header,
+    footer,
+    maxInputLength = 10000,
+    autoScroll = true,
+    showTimestamps = false,
+  },
+  ref
+) {
+  const [inputValue, setInputValue] = useState('');
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
-    // Expose methods via ref
-    useImperativeHandle(ref, () => ({
-      focus: () => inputRef.current?.focus(),
-      clearInput: () => setInputValue(''),
-      scrollToBottom: () => {
-        if (listRef.current) {
-          listRef.current.scrollTop = listRef.current.scrollHeight;
-        }
-      },
-      getInputValue: () => inputValue,
-      setInputValue: (value: string) => setInputValue(value),
-    }));
-
-    // Auto-scroll on new messages
-    useEffect(() => {
-      if (autoScroll && listRef.current) {
+  // Expose methods via ref
+  useImperativeHandle(ref, () => ({
+    focus: () => inputRef.current?.focus(),
+    clearInput: () => setInputValue(''),
+    scrollToBottom: () => {
+      if (listRef.current) {
         listRef.current.scrollTop = listRef.current.scrollHeight;
       }
-    }, [messages, streamingContent, autoScroll]);
+    },
+    getInputValue: () => inputValue,
+    setInputValue: (value: string) => setInputValue(value),
+  }));
 
-    const handleSend = useCallback(() => {
-      const trimmed = inputValue.trim();
-      if (trimmed && !disabled && !isLoading) {
-        onSendMessage(trimmed);
-        setInputValue('');
-      }
-    }, [inputValue, disabled, isLoading, onSendMessage]);
-
-    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        handleSend();
-      }
-    };
-
-    // Build display messages including streaming
-    const displayMessages: Message[] = [...messages];
-    if (streamingContent) {
-      displayMessages.push({
-        id: 'streaming',
-        role: 'assistant',
-        content: streamingContent,
-        timestamp: Date.now(),
-        metadata: { streaming: true },
-      });
+  // Auto-scroll on new messages
+  useEffect(() => {
+    if (autoScroll && listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight;
     }
+  }, [messages, streamingContent, autoScroll]);
 
-    return (
-      <div
-        className={className}
-        style={{ ...defaultStyles.chatWindow, ...style }}
-      >
-        {header}
+  const handleSend = useCallback(() => {
+    const trimmed = inputValue.trim();
+    if (trimmed && !disabled && !isLoading) {
+      onSendMessage(trimmed);
+      setInputValue('');
+    }
+  }, [inputValue, disabled, isLoading, onSendMessage]);
 
-        <div ref={listRef} style={defaultStyles.messageList}>
-          <MessageList
-            messages={displayMessages}
-            renderMessage={renderMessage}
-            showTimestamps={showTimestamps}
-          />
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
-          {pendingToolCalls.length > 0 && (
-            renderToolStatus ? (
-              <React.Fragment>
-                {pendingToolCalls.map(tc => 
-                  <React.Fragment key={tc.id}>
-                    {renderToolStatus(tc, toolResults.find(r => r.toolCallId === tc.id))}
-                  </React.Fragment>
-                )}
-              </React.Fragment>
-            ) : (
-              <ToolStatus
-                toolCalls={pendingToolCalls}
-                toolResults={toolResults}
-                isExecuting={isLoading}
-              />
-            )
-          )}
-
-          {isLoading && !streamingContent && pendingToolCalls.length === 0 && (
-            <TypingIndicator isVisible={true} />
-          )}
-        </div>
-
-        {footer}
-
-        <div style={defaultStyles.inputContainer}>
-          <textarea
-            ref={inputRef}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value.slice(0, maxInputLength))}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            disabled={disabled || isLoading}
-            rows={1}
-            style={{
-              ...defaultStyles.input,
-              minHeight: '40px',
-              maxHeight: '120px',
-            }}
-          />
-          <button
-            onClick={handleSend}
-            disabled={disabled || isLoading || !inputValue.trim()}
-            style={{
-              ...defaultStyles.sendButton,
-              ...(disabled || isLoading || !inputValue.trim()
-                ? defaultStyles.sendButtonDisabled
-                : {}),
-            }}
-          >
-            {isLoading ? 'Sending...' : 'Send'}
-          </button>
-        </div>
-      </div>
-    );
+  // Build display messages including streaming
+  const displayMessages: Message[] = [...messages];
+  if (streamingContent) {
+    displayMessages.push({
+      id: 'streaming',
+      role: 'assistant',
+      content: streamingContent,
+      timestamp: Date.now(),
+      metadata: { streaming: true },
+    });
   }
-);
+
+  return (
+    <div className={className} style={{ ...defaultStyles.chatWindow, ...style }}>
+      {header}
+
+      <div ref={listRef} style={defaultStyles.messageList}>
+        <MessageList
+          messages={displayMessages}
+          renderMessage={renderMessage}
+          showTimestamps={showTimestamps}
+        />
+
+        {pendingToolCalls.length > 0 &&
+          (renderToolStatus ? (
+            <React.Fragment>
+              {pendingToolCalls.map((tc) => (
+                <React.Fragment key={tc.id}>
+                  {renderToolStatus(
+                    tc,
+                    toolResults.find((r) => r.toolCallId === tc.id)
+                  )}
+                </React.Fragment>
+              ))}
+            </React.Fragment>
+          ) : (
+            <ToolStatus
+              toolCalls={pendingToolCalls}
+              toolResults={toolResults}
+              isExecuting={isLoading}
+            />
+          ))}
+
+        {isLoading && !streamingContent && pendingToolCalls.length === 0 && (
+          <TypingIndicator isVisible={true} />
+        )}
+      </div>
+
+      {footer}
+
+      <div style={defaultStyles.inputContainer}>
+        <textarea
+          ref={inputRef}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value.slice(0, maxInputLength))}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          disabled={disabled || isLoading}
+          rows={1}
+          style={{
+            ...defaultStyles.input,
+            minHeight: '40px',
+            maxHeight: '120px',
+          }}
+        />
+        <button
+          onClick={handleSend}
+          disabled={disabled || isLoading || !inputValue.trim()}
+          style={{
+            ...defaultStyles.sendButton,
+            ...(disabled || isLoading || !inputValue.trim()
+              ? defaultStyles.sendButtonDisabled
+              : {}),
+          }}
+        >
+          {isLoading ? 'Sending...' : 'Send'}
+        </button>
+      </div>
+    </div>
+  );
+});
 
 // ============================================
 // MessageList Component
@@ -422,9 +419,7 @@ export function MessageList({
     <div className={className} style={style}>
       {messages.map((message, index) =>
         renderMessage ? (
-          <React.Fragment key={message.id || index}>
-            {renderMessage(message, index)}
-          </React.Fragment>
+          <React.Fragment key={message.id || index}>{renderMessage(message, index)}</React.Fragment>
         ) : (
           <MessageBubble
             key={message.id || index}
@@ -511,9 +506,7 @@ export function MessageBubble({
     >
       <div style={{ whiteSpace: 'pre-wrap' }}>
         {formatContent(message.content)}
-        {(message.metadata?.streaming as boolean) && (
-          <span style={{ opacity: 0.5 }}>▋</span>
-        )}
+        {(message.metadata?.streaming as boolean) && <span style={{ opacity: 0.5 }}>▋</span>}
       </div>
       {showTimestamp && message.timestamp && (
         <div style={defaultStyles.timestamp}>
@@ -541,7 +534,7 @@ export function ToolStatus({
 
   if (toolCalls.length === 0) return null;
 
-  const resultMap = new Map(toolResults.map(r => [r.toolCallId, r]));
+  const resultMap = new Map(toolResults.map((r) => [r.toolCallId, r]));
   const completedCount = toolResults.length;
   const totalCount = toolCalls.length;
   const allComplete = completedCount === totalCount && !isExecuting;
@@ -553,7 +546,9 @@ export function ToolStatus({
         style={{ ...defaultStyles.toolStatus, ...style, cursor: 'pointer' }}
         onClick={() => setIsCollapsed(false)}
       >
-        <span>✓ {totalCount} tool{totalCount > 1 ? 's' : ''} executed</span>
+        <span>
+          ✓ {totalCount} tool{totalCount > 1 ? 's' : ''} executed
+        </span>
       </div>
     );
   }
@@ -581,9 +576,7 @@ export function ToolStatus({
 
         if (renderToolItem) {
           return (
-            <React.Fragment key={toolCall.id}>
-              {renderToolItem(toolCall, result)}
-            </React.Fragment>
+            <React.Fragment key={toolCall.id}>{renderToolItem(toolCall, result)}</React.Fragment>
           );
         }
 
@@ -591,9 +584,7 @@ export function ToolStatus({
 
         return (
           <div key={toolCall.id} style={defaultStyles.toolItem}>
-            <span style={{ fontSize: '14px' }}>
-              {result ? (success ? '✓' : '✗') : '⋯'}
-            </span>
+            <span style={{ fontSize: '14px' }}>{result ? (success ? '✓' : '✗') : '⋯'}</span>
             <span style={{ fontWeight: 500 }}>{toolCall.name}</span>
             {result && (
               <span
@@ -668,10 +659,7 @@ export interface ErrorBoundaryState {
 /**
  * Error boundary for chat components
  */
-export class ChatErrorBoundary extends React.Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ChatErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };

@@ -1,6 +1,6 @@
 /**
  * Together AI Provider
- * 
+ *
  * Supports open-source models like Llama, Mistral, Mixtral, and more
  */
 
@@ -102,21 +102,21 @@ export interface TogetherProviderConfig extends ProviderConfig {
 
 /**
  * Together AI provider implementation
- * 
+ *
  * Supports popular open-source models including:
  * - Meta Llama 3, Llama 3.1
  * - Mistral 7B, Mixtral 8x7B
  * - DeepSeek Coder
  * - Qwen 2
  * - And many more
- * 
+ *
  * @example
  * ```typescript
  * const together = new TogetherProvider({
  *   apiKey: process.env.TOGETHER_API_KEY,
  *   model: 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
  * });
- * 
+ *
  * const response = await together.complete({
  *   messages: [{ role: 'user', content: 'Hello!' }],
  * });
@@ -164,7 +164,8 @@ export class TogetherProvider extends BaseProvider {
       stream: true,
     };
 
-    const toolCallsAccumulator: Map<number, { id: string; name: string; arguments: string }> = new Map();
+    const toolCallsAccumulator: Map<number, { id: string; name: string; arguments: string }> =
+      new Map();
 
     for await (const data of this.fetchStream('/chat/completions', {
       method: 'POST',
@@ -203,13 +204,11 @@ export class TogetherProvider extends BaseProvider {
         }
 
         if (choice.finish_reason === 'tool_calls') {
-          streamChunk.delta.toolCalls = Array.from(toolCallsAccumulator.values()).map(
-            (tc) => ({
-              id: tc.id,
-              name: tc.name,
-              arguments: JSON.parse(tc.arguments || '{}'),
-            })
-          );
+          streamChunk.delta.toolCalls = Array.from(toolCallsAccumulator.values()).map((tc) => ({
+            id: tc.id,
+            name: tc.name,
+            arguments: JSON.parse(tc.arguments || '{}'),
+          }));
         }
 
         yield streamChunk;
@@ -296,9 +295,7 @@ export class TogetherProvider extends BaseProvider {
     return result;
   }
 
-  private mapFinishReason(
-    reason: string | null
-  ): CompletionResponse['finishReason'] {
+  private mapFinishReason(reason: string | null): CompletionResponse['finishReason'] {
     switch (reason) {
       case 'stop':
       case 'eos':
@@ -323,18 +320,18 @@ export const TOGETHER_MODELS = {
   'llama-3.1-8b': 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',
   'llama-3-70b': 'meta-llama/Llama-3-70b-chat-hf',
   'llama-3-8b': 'meta-llama/Llama-3-8b-chat-hf',
-  
+
   // Mistral
   'mixtral-8x22b': 'mistralai/Mixtral-8x22B-Instruct-v0.1',
   'mixtral-8x7b': 'mistralai/Mixtral-8x7B-Instruct-v0.1',
   'mistral-7b': 'mistralai/Mistral-7B-Instruct-v0.3',
-  
+
   // DeepSeek
   'deepseek-coder-33b': 'deepseek-ai/deepseek-coder-33b-instruct',
-  
+
   // Qwen
   'qwen-2-72b': 'Qwen/Qwen2-72B-Instruct',
-  
+
   // Code models
   'codellama-70b': 'codellama/CodeLlama-70b-Instruct-hf',
   'codellama-34b': 'codellama/CodeLlama-34b-Instruct-hf',

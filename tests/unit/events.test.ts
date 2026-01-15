@@ -89,10 +89,10 @@ describe('EventEmitter', () => {
       emitter.on('request:end', listener2);
       emitter.removeAllListeners();
       await emitter.emit('request:start', { messages: [], timestamp: Date.now() });
-      await emitter.emit('request:end', { 
-        response: { id: '1', content: '', finishReason: 'stop' }, 
-        durationMs: 100, 
-        timestamp: Date.now() 
+      await emitter.emit('request:end', {
+        response: { id: '1', content: '', finishReason: 'stop' },
+        durationMs: 100,
+        timestamp: Date.now(),
       });
 
       expect(listener1).not.toHaveBeenCalled();
@@ -165,8 +165,6 @@ describe('waitForEvent', () => {
   it('should timeout if event not emitted', async () => {
     const emitter = new EventEmitter();
 
-    await expect(
-      waitForEvent(emitter, 'request:start', 50)
-    ).rejects.toThrow(/Timeout/);
+    await expect(waitForEvent(emitter, 'request:start', 50)).rejects.toThrow(/Timeout/);
   });
 });

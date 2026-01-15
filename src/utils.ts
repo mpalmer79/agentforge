@@ -26,12 +26,7 @@ export async function retry<T>(
     shouldRetry?: (error: Error) => boolean;
   } = {}
 ): Promise<T> {
-  const {
-    maxRetries = 3,
-    baseDelay = 1000,
-    maxDelay = 30000,
-    shouldRetry = () => true,
-  } = options;
+  const { maxRetries = 3, baseDelay = 1000, maxDelay = 30000, shouldRetry = () => true } = options;
 
   let lastError: Error | undefined;
 

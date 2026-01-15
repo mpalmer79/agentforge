@@ -93,11 +93,7 @@ export function validateMessage(message: unknown): Message {
   } catch (error) {
     if (error instanceof z.ZodError) {
       const firstError = error.errors[0];
-      throw ValidationError.invalidField(
-        firstError.path.join('.'),
-        firstError.message,
-        message
-      );
+      throw ValidationError.invalidField(firstError.path.join('.'), firstError.message, message);
     }
     throw error;
   }
@@ -116,10 +112,9 @@ export function validateMessages(messages: unknown): Message[] {
       return validateMessage(msg);
     } catch (error) {
       if (error instanceof ValidationError) {
-        throw new ValidationError(
-          `Invalid message at index ${index}: ${error.message}`,
-          { cause: error }
-        );
+        throw new ValidationError(`Invalid message at index ${index}: ${error.message}`, {
+          cause: error,
+        });
       }
       throw error;
     }
@@ -133,18 +128,9 @@ export function validateMessages(messages: unknown): Message[] {
 /**
  * Validate that a value is within a range
  */
-export function validateRange(
-  value: number,
-  min: number,
-  max: number,
-  fieldName: string
-): number {
+export function validateRange(value: number, min: number, max: number, fieldName: string): number {
   if (value < min || value > max) {
-    throw ValidationError.invalidField(
-      fieldName,
-      `number between ${min} and ${max}`,
-      value
-    );
+    throw ValidationError.invalidField(fieldName, `number between ${min} and ${max}`, value);
   }
   return value;
 }
@@ -167,17 +153,9 @@ export function validatePattern(
 /**
  * Validate that a value is one of allowed values
  */
-export function validateOneOf<T>(
-  value: T,
-  allowedValues: readonly T[],
-  fieldName: string
-): T {
+export function validateOneOf<T>(value: T, allowedValues: readonly T[], fieldName: string): T {
   if (!allowedValues.includes(value)) {
-    throw ValidationError.invalidField(
-      fieldName,
-      `one of: ${allowedValues.join(', ')}`,
-      value
-    );
+    throw ValidationError.invalidField(fieldName, `one of: ${allowedValues.join(', ')}`, value);
   }
   return value;
 }
@@ -245,10 +223,7 @@ export function sanitizeContent(content: string, maxLength?: number): string {
 /**
  * Safely parse JSON with error handling
  */
-export function safeParseJSON<T>(
-  json: string,
-  fallback?: T
-): T | undefined {
+export function safeParseJSON<T>(json: string, fallback?: T): T | undefined {
   try {
     return JSON.parse(json) as T;
   } catch {
@@ -259,10 +234,7 @@ export function safeParseJSON<T>(
 /**
  * Safely stringify with error handling
  */
-export function safeStringify(
-  value: unknown,
-  space?: number
-): string {
+export function safeStringify(value: unknown, space?: number): string {
   try {
     return JSON.stringify(value, null, space);
   } catch {
@@ -273,10 +245,7 @@ export function safeStringify(
 /**
  * Parse a number with validation
  */
-export function parseNumber(
-  value: unknown,
-  fieldName: string
-): number {
+export function parseNumber(value: unknown, fieldName: string): number {
   if (typeof value === 'number' && !Number.isNaN(value)) {
     return value;
   }
@@ -294,10 +263,7 @@ export function parseNumber(
 /**
  * Parse a boolean with validation
  */
-export function parseBoolean(
-  value: unknown,
-  fieldName: string
-): boolean {
+export function parseBoolean(value: unknown, fieldName: string): boolean {
   if (typeof value === 'boolean') {
     return value;
   }

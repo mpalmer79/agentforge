@@ -197,7 +197,7 @@ export class ProviderFactory {
     const { primary, fallbacks = [], loadBalancing = 'none' } = this.config;
 
     // Get all candidate providers
-    const candidates = [primary, ...fallbacks].filter(type => {
+    const candidates = [primary, ...fallbacks].filter((type) => {
       const provider = this.providers.get(type);
       const stats = this.stats.get(type);
       return provider && stats?.healthy;
@@ -252,7 +252,7 @@ export class ProviderFactory {
     const providerOrder = [primary, ...fallbacks];
 
     const fallbackProviders = providerOrder
-      .map(type => {
+      .map((type) => {
         const provider = this.providers.get(type);
         const cb = this.circuitBreakers.get(type);
         const stats = this.stats.get(type);
@@ -335,7 +335,7 @@ export class ProviderFactory {
    * Get status of all providers
    */
   getStats(): ProviderStats[] {
-    return Array.from(this.stats.values()).map(stats => ({
+    return Array.from(this.stats.values()).map((stats) => ({
       ...stats,
       circuitState: this.circuitBreakers.get(stats.type)?.getState(),
     }));
@@ -345,7 +345,7 @@ export class ProviderFactory {
    * Get health status
    */
   isHealthy(): boolean {
-    return Array.from(this.stats.values()).some(s => s.healthy);
+    return Array.from(this.stats.values()).some((s) => s.healthy);
   }
 
   /**
@@ -380,14 +380,8 @@ export class ProviderFactory {
 /**
  * Create a simple single-provider factory
  */
-export function createSingleProvider(
-  type: 'openai',
-  config: OpenAIProviderConfig
-): Provider;
-export function createSingleProvider(
-  type: 'anthropic',
-  config: AnthropicProviderConfig
-): Provider;
+export function createSingleProvider(type: 'openai', config: OpenAIProviderConfig): Provider;
+export function createSingleProvider(type: 'anthropic', config: AnthropicProviderConfig): Provider;
 export function createSingleProvider(
   type: ProviderType,
   config: OpenAIProviderConfig | AnthropicProviderConfig
@@ -467,7 +461,9 @@ export function instrumentProvider(provider: Provider): Provider {
         const duration = Date.now() - startTime;
 
         telemetry.endSpan(spanId, 'ok', { duration });
-        telemetry.recordLatency('provider.complete.duration', duration, { provider: provider.name });
+        telemetry.recordLatency('provider.complete.duration', duration, {
+          provider: provider.name,
+        });
 
         if (response.usage) {
           telemetry.recordTokens('provider.tokens.prompt', response.usage.promptTokens);

@@ -41,10 +41,7 @@ export abstract class BaseProvider implements Provider {
   /**
    * Make an HTTP request with retries
    */
-  protected async fetch<T>(
-    endpoint: string,
-    options: RequestInit
-  ): Promise<T> {
+  protected async fetch<T>(endpoint: string, options: RequestInit): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
 
     const makeRequest = async (): Promise<T> => {
@@ -85,9 +82,7 @@ export abstract class BaseProvider implements Provider {
       shouldRetry: (error) => {
         if (error instanceof ProviderError) {
           // Retry on rate limits (429) and server errors (5xx)
-          return (
-            error.statusCode === 429 || (error.statusCode ?? 0) >= 500
-          );
+          return error.statusCode === 429 || (error.statusCode ?? 0) >= 500;
         }
         return false;
       },
@@ -97,10 +92,7 @@ export abstract class BaseProvider implements Provider {
   /**
    * Make a streaming request
    */
-  protected async *fetchStream(
-    endpoint: string,
-    options: RequestInit
-  ): AsyncIterable<string> {
+  protected async *fetchStream(endpoint: string, options: RequestInit): AsyncIterable<string> {
     const url = `${this.baseURL}${endpoint}`;
 
     const response = await fetch(url, {
@@ -125,10 +117,7 @@ export abstract class BaseProvider implements Provider {
     }
 
     if (!response.body) {
-      throw ProviderError.invalidResponse(
-        this.name,
-        'Response body is null'
-      );
+      throw ProviderError.invalidResponse(this.name, 'Response body is null');
     }
 
     const reader = response.body.getReader();

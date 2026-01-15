@@ -27,14 +27,7 @@ export interface UseChatReturn {
  * Simplified chat hook for common chat UI patterns
  */
 export function useChat(config: UseChatConfig): UseChatReturn {
-  const {
-    provider,
-    tools = [],
-    systemPrompt,
-    initialMessages = [],
-    onFinish,
-    onError,
-  } = config;
+  const { provider, tools = [], systemPrompt, initialMessages = [], onFinish, onError } = config;
 
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');

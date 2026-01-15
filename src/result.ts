@@ -100,10 +100,7 @@ export function unwrapOr<T, E>(result: Result<T, E>, defaultValue: T): T {
 /**
  * Unwrap a result or call a function to get a default
  */
-export function unwrapOrElse<T, E>(
-  result: Result<T, E>,
-  fn: (error: E) => T
-): T {
+export function unwrapOrElse<T, E>(result: Result<T, E>, fn: (error: E) => T): T {
   if (isOk(result)) {
     return result.value;
   }
@@ -113,10 +110,7 @@ export function unwrapOrElse<T, E>(
 /**
  * Map the success value of a result
  */
-export function map<T, U, E>(
-  result: Result<T, E>,
-  fn: (value: T) => U
-): Result<U, E> {
+export function map<T, U, E>(result: Result<T, E>, fn: (value: T) => U): Result<U, E> {
   if (isOk(result)) {
     return ok(fn(result.value));
   }
@@ -126,10 +120,7 @@ export function map<T, U, E>(
 /**
  * Map the error of a result
  */
-export function mapErr<T, E, F>(
-  result: Result<T, E>,
-  fn: (error: E) => F
-): Result<T, F> {
+export function mapErr<T, E, F>(result: Result<T, E>, fn: (error: E) => F): Result<T, F> {
   if (isErr(result)) {
     return err(fn(result.error));
   }
@@ -179,9 +170,7 @@ export function tryCatch<T>(fn: () => T): Result<T, AgentForgeError> {
 /**
  * Try to execute an async function and return a Result
  */
-export async function tryCatchAsync<T>(
-  fn: () => Promise<T>
-): Promise<Result<T, AgentForgeError>> {
+export async function tryCatchAsync<T>(fn: () => Promise<T>): Promise<Result<T, AgentForgeError>> {
   try {
     const value = await fn();
     return ok(value);
@@ -213,9 +202,7 @@ export function match<T, E, R>(
 /**
  * Resolve a promise to a Result
  */
-export async function fromPromise<T>(
-  promise: Promise<T>
-): Promise<Result<T, AgentForgeError>> {
+export async function fromPromise<T>(promise: Promise<T>): Promise<Result<T, AgentForgeError>> {
   return tryCatchAsync(() => promise);
 }
 
@@ -254,9 +241,7 @@ export async function collectAsync<T>(
 export async function collectAsyncParallel<T>(
   operations: (() => Promise<T>)[]
 ): Promise<Result<T[], AgentForgeError>> {
-  const results = await Promise.all(
-    operations.map((op) => tryCatchAsync(op))
-  );
+  const results = await Promise.all(operations.map((op) => tryCatchAsync(op)));
 
   return combine(results);
 }

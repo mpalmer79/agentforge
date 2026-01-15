@@ -1,6 +1,6 @@
 /**
  * Memory Summarization Strategies
- * 
+ *
  * Advanced memory management for long conversations:
  * - Sliding window with summarization
  * - Semantic compression
@@ -43,7 +43,7 @@ export interface SummarizationResult {
   summary?: string;
 }
 
-export type SummarizationStrategy = 
+export type SummarizationStrategy =
   | 'sliding_window'
   | 'semantic_compression'
   | 'hierarchical'
@@ -54,10 +54,7 @@ export interface MemorySummarizer {
   /** Strategy name */
   name: SummarizationStrategy;
   /** Summarize messages to fit within token budget */
-  summarize(
-    messages: Message[],
-    config: SummarizationConfig
-  ): Promise<SummarizationResult>;
+  summarize(messages: Message[], config: SummarizationConfig): Promise<SummarizationResult>;
 }
 
 // ============================================
@@ -66,7 +63,7 @@ export interface MemorySummarizer {
 
 /**
  * Simple sliding window with optional summarization of dropped messages
- * 
+ *
  * @example
  * ```typescript
  * const summarizer = createSlidingWindowSummarizer();
@@ -96,10 +93,7 @@ export function createSlidingWindowSummarizer(
       const startTime = Date.now();
 
       // Calculate current token count
-      const originalTokens = messages.reduce(
-        (sum, m) => sum + counter.count(m.content),
-        0
-      );
+      const originalTokens = messages.reduce((sum, m) => sum + counter.count(m.content), 0);
 
       // Check if summarization is needed
       const targetTokens = config.maxTokens - config.reserveTokens;
@@ -119,23 +113,17 @@ export function createSlidingWindowSummarizer(
       });
 
       // Separate system message
-      const systemMessage = messages.find(m => m.role === 'system');
-      const conversationMessages = messages.filter(m => m.role !== 'system');
+      const systemMessage = messages.find((m) => m.role === 'system');
+      const conversationMessages = messages.filter((m) => m.role !== 'system');
 
       // Always preserve recent messages
-      const preserveCount = Math.min(
-        config.preserveRecentMessages,
-        conversationMessages.length
-      );
+      const preserveCount = Math.min(config.preserveRecentMessages, conversationMessages.length);
       const recentMessages = conversationMessages.slice(-preserveCount);
       const olderMessages = conversationMessages.slice(0, -preserveCount);
 
       // Calculate how many older messages we can keep
       const systemTokens = systemMessage ? counter.count(systemMessage.content) : 0;
-      const recentTokens = recentMessages.reduce(
-        (sum, m) => sum + counter.count(m.content),
-        0
-      );
+      const recentTokens = recentMessages.reduce((sum, m) => sum + counter.count(m.content), 0);
       const availableForOlder = targetTokens - systemTokens - recentTokens;
 
       // Keep as many older messages as possible
@@ -178,10 +166,7 @@ export function createSlidingWindowSummarizer(
       if (summaryMessage) result.push(summaryMessage);
       result.push(...keptMessages, ...recentMessages);
 
-      const finalTokens = result.reduce(
-        (sum, m) => sum + counter.count(m.content),
-        0
-      );
+      const finalTokens = result.reduce((sum, m) => sum + counter.count(m.content), 0);
 
       getTelemetry().recordLatency('memory.summarization', Date.now() - startTime);
       getTelemetry().recordMetric('memory.tokens_saved', originalTokens - finalTokens, 'count');
@@ -210,12 +195,10 @@ export function createSlidingWindowSummarizer(
 
 /**
  * Compress messages by extracting key information and removing redundancy
- * 
+ *
  * Uses LLM to intelligently compress conversation while preserving meaning
  */
-export function createSemanticCompressionSummarizer(
-  provider: Provider
-): MemorySummarizer {
+export function createSemanticCompressionSummarizer(provider: Provider): MemorySummarizer {
   const logger = getLogger().child({ component: 'SemanticCompressionSummarizer' });
 
   return {
@@ -224,10 +207,7 @@ export function createSemanticCompressionSummarizer(
       const counter = getTokenCounter('gpt-4');
       const startTime = Date.now();
 
-      const originalTokens = messages.reduce(
-        (sum, m) => sum + counter.count(m.content),
-        0
-      );
+      const originalTokens = messages.reduce((sum, m) => sum + counter.count(m.content), 0);
 
       const targetTokens = config.maxTokens - config.reserveTokens;
       if (originalTokens <= targetTokens) {
@@ -246,8 +226,8 @@ export function createSemanticCompressionSummarizer(
       });
 
       // Separate system message
-      const systemMessage = messages.find(m => m.role === 'system');
-      const conversationMessages = messages.filter(m => m.role !== 'system');
+      const systemMessage = messages.find((m) => m.role === 'system');
+      const conversationMessages = messages.filter((m) => m.role !== 'system');
 
       // Preserve recent messages
       const preserveCount = config.preserveRecentMessages;
@@ -257,22 +237,18 @@ export function createSemanticCompressionSummarizer(
       if (toCompress.length < config.minMessagesBeforeSummarization) {
         // Fall back to simple truncation
         return {
-          messages: [
-            ...(systemMessage ? [systemMessage] : []),
-            ...recentMessages,
-          ],
+          messages: [...(systemMessage ? [systemMessage] : []), ...recentMessages],
           summarized: true,
           originalTokens,
           finalTokens: counter.count(
-            (systemMessage?.content ?? '') + 
-            recentMessages.map(m => m.content).join('')
+            (systemMessage?.content ?? '') + recentMessages.map((m) => m.content).join('')
           ),
         };
       }
 
       // Compress older messages using LLM
       const compressionPrompt = buildCompressionPrompt(toCompress, targetTokens / 2);
-      
+
       const compressionResponse = await provider.complete({
         messages: [
           {
@@ -308,13 +284,14 @@ export function createSemanticCompressionSummarizer(
         ...recentMessages,
       ];
 
-      const finalTokens = result.reduce(
-        (sum, m) => sum + counter.count(m.content),
-        0
-      );
+      const finalTokens = result.reduce((sum, m) => sum + counter.count(m.content), 0);
 
       getTelemetry().recordLatency('memory.semantic_compression', Date.now() - startTime);
-      getTelemetry().recordMetric('memory.compression_ratio', (finalTokens / originalTokens) * 100, 'percent');
+      getTelemetry().recordMetric(
+        'memory.compression_ratio',
+        (finalTokens / originalTokens) * 100,
+        'percent'
+      );
 
       logger.info('Semantic compression complete', {
         originalTokens,
@@ -340,21 +317,19 @@ export function createSemanticCompressionSummarizer(
 
 /**
  * Creates hierarchical summaries at different levels of detail
- * 
+ *
  * Level 1: Detailed recent context
- * Level 2: Condensed mid-term context  
+ * Level 2: Condensed mid-term context
  * Level 3: High-level long-term summary
  */
-export function createHierarchicalSummarizer(
-  provider: Provider
-): MemorySummarizer {
+export function createHierarchicalSummarizer(provider: Provider): MemorySummarizer {
   const logger = getLogger().child({ component: 'HierarchicalSummarizer' });
 
   // Store hierarchical summaries
   const summaryLevels: {
     level1: Message[]; // Recent, full detail
-    level2: string;    // Mid-term summary
-    level3: string;    // Long-term summary
+    level2: string; // Mid-term summary
+    level3: string; // Long-term summary
   } = {
     level1: [],
     level2: '',
@@ -367,10 +342,7 @@ export function createHierarchicalSummarizer(
       const counter = getTokenCounter('gpt-4');
       const startTime = Date.now();
 
-      const originalTokens = messages.reduce(
-        (sum, m) => sum + counter.count(m.content),
-        0
-      );
+      const originalTokens = messages.reduce((sum, m) => sum + counter.count(m.content), 0);
 
       const targetTokens = config.maxTokens - config.reserveTokens;
       if (originalTokens <= targetTokens) {
@@ -387,22 +359,22 @@ export function createHierarchicalSummarizer(
         targetTokens,
       });
 
-      const systemMessage = messages.find(m => m.role === 'system');
-      const conversationMessages = messages.filter(m => m.role !== 'system');
+      const systemMessage = messages.find((m) => m.role === 'system');
+      const conversationMessages = messages.filter((m) => m.role !== 'system');
 
       // Allocate tokens: 60% level1, 25% level2, 15% level3
-      const level1Budget = Math.floor(targetTokens * 0.60);
+      const level1Budget = Math.floor(targetTokens * 0.6);
       const level2Budget = Math.floor(targetTokens * 0.25);
       const level3Budget = Math.floor(targetTokens * 0.15);
 
       // Level 1: Keep recent messages
       let level1Messages: Message[] = [];
       let level1Tokens = 0;
-      
+
       for (let i = conversationMessages.length - 1; i >= 0; i--) {
         const msg = conversationMessages[i];
         const msgTokens = counter.count(msg.content);
-        
+
         if (level1Tokens + msgTokens <= level1Budget) {
           level1Messages.unshift(msg);
           level1Tokens += msgTokens;
@@ -421,11 +393,7 @@ export function createHierarchicalSummarizer(
       let level2Summary = '';
       if (toSummarize.length > 0) {
         const midTermMessages = toSummarize.slice(-Math.min(20, toSummarize.length));
-        level2Summary = await generateSummary(
-          provider,
-          midTermMessages,
-          level2Budget
-        );
+        level2Summary = await generateSummary(provider, midTermMessages, level2Budget);
       }
 
       // Level 3: Update long-term summary if needed
@@ -433,12 +401,8 @@ export function createHierarchicalSummarizer(
       const oldMessages = toSummarize.slice(0, -20);
       if (oldMessages.length > 10) {
         // Incorporate old messages into long-term summary
-        const newLongTermContent = await generateSummary(
-          provider,
-          oldMessages,
-          level3Budget
-        );
-        
+        const newLongTermContent = await generateSummary(provider, oldMessages, level3Budget);
+
         if (level3Summary) {
           // Merge with existing long-term summary
           level3Summary = await mergeSummaries(
@@ -450,15 +414,15 @@ export function createHierarchicalSummarizer(
         } else {
           level3Summary = newLongTermContent;
         }
-        
+
         summaryLevels.level3 = level3Summary;
       }
 
       // Build result messages
       const result: Message[] = [];
-      
+
       if (systemMessage) result.push(systemMessage);
-      
+
       if (level3Summary) {
         result.push({
           id: `summary-l3-${Date.now()}`,
@@ -467,7 +431,7 @@ export function createHierarchicalSummarizer(
           timestamp: Date.now(),
         });
       }
-      
+
       if (level2Summary) {
         result.push({
           id: `summary-l2-${Date.now()}`,
@@ -476,13 +440,10 @@ export function createHierarchicalSummarizer(
           timestamp: Date.now(),
         });
       }
-      
+
       result.push(...level1Messages);
 
-      const finalTokens = result.reduce(
-        (sum, m) => sum + counter.count(m.content),
-        0
-      );
+      const finalTokens = result.reduce((sum, m) => sum + counter.count(m.content), 0);
 
       getTelemetry().recordLatency('memory.hierarchical_summarization', Date.now() - startTime);
 
@@ -520,7 +481,7 @@ export interface MessageImportance {
 
 /**
  * Retain messages based on their importance to the conversation
- * 
+ *
  * Uses LLM to score message importance and keeps the most important ones
  */
 export function createImportanceBasedSummarizer(
@@ -538,10 +499,7 @@ export function createImportanceBasedSummarizer(
       const counter = getTokenCounter('gpt-4');
       const startTime = Date.now();
 
-      const originalTokens = messages.reduce(
-        (sum, m) => sum + counter.count(m.content),
-        0
-      );
+      const originalTokens = messages.reduce((sum, m) => sum + counter.count(m.content), 0);
 
       const targetTokens = config.maxTokens - config.reserveTokens;
       if (originalTokens <= targetTokens) {
@@ -558,8 +516,8 @@ export function createImportanceBasedSummarizer(
         targetTokens,
       });
 
-      const systemMessage = messages.find(m => m.role === 'system');
-      const conversationMessages = messages.filter(m => m.role !== 'system');
+      const systemMessage = messages.find((m) => m.role === 'system');
+      const conversationMessages = messages.filter((m) => m.role !== 'system');
 
       // Always preserve recent messages
       const recentMessages = conversationMessages.slice(-config.preserveRecentMessages);
@@ -578,10 +536,7 @@ export function createImportanceBasedSummarizer(
         .sort((a, b) => b.score - a.score);
 
       const systemTokens = systemMessage ? counter.count(systemMessage.content) : 0;
-      const recentTokens = recentMessages.reduce(
-        (sum, m) => sum + counter.count(m.content),
-        0
-      );
+      const recentTokens = recentMessages.reduce((sum, m) => sum + counter.count(m.content), 0);
       const availableTokens = targetTokens - systemTokens - recentTokens;
 
       // Select most important messages that fit
@@ -600,9 +555,7 @@ export function createImportanceBasedSummarizer(
       }
 
       // Sort selected messages back to chronological order
-      const messageOrder = new Map(
-        candidateMessages.map((m, i) => [m.id, i])
-      );
+      const messageOrder = new Map(candidateMessages.map((m, i) => [m.id, i]));
       selectedMessages.sort(
         (a, b) => (messageOrder.get(a.id) ?? 0) - (messageOrder.get(b.id) ?? 0)
       );
@@ -613,10 +566,7 @@ export function createImportanceBasedSummarizer(
         ...recentMessages,
       ];
 
-      const finalTokens = result.reduce(
-        (sum, m) => sum + counter.count(m.content),
-        0
-      );
+      const finalTokens = result.reduce((sum, m) => sum + counter.count(m.content), 0);
 
       getTelemetry().recordLatency('memory.importance_summarization', Date.now() - startTime);
 
@@ -647,7 +597,7 @@ async function generateSummary(
   maxTokens?: number
 ): Promise<string> {
   const conversationText = messages
-    .map(m => `${m.role.toUpperCase()}: ${m.content}`)
+    .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
     .join('\n\n');
 
   const response = await provider.complete({
@@ -655,7 +605,8 @@ async function generateSummary(
       {
         id: 'summary-system',
         role: 'system',
-        content: 'Summarize the following conversation concisely, preserving key facts, decisions, and context needed to continue naturally.',
+        content:
+          'Summarize the following conversation concisely, preserving key facts, decisions, and context needed to continue naturally.',
         timestamp: Date.now(),
       },
       {
@@ -682,7 +633,8 @@ async function mergeSummaries(
       {
         id: 'merge-system',
         role: 'system',
-        content: 'Merge these two summaries into one cohesive summary, removing redundancy while preserving all unique information.',
+        content:
+          'Merge these two summaries into one cohesive summary, removing redundancy while preserving all unique information.',
         timestamp: Date.now(),
       },
       {
@@ -700,7 +652,7 @@ async function mergeSummaries(
 
 function buildCompressionPrompt(messages: Message[], _targetTokens: number): string {
   const conversationText = messages
-    .map(m => `${m.role.toUpperCase()}: ${m.content}`)
+    .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
     .join('\n\n');
 
   return `Compress this conversation while preserving all key information:
@@ -720,11 +672,11 @@ async function scoreMessageImportance(
   customScorer?: (message: Message, context: Message[]) => Promise<number>
 ): Promise<number[]> {
   if (customScorer) {
-    return Promise.all(messages.map(m => customScorer(m, messages)));
+    return Promise.all(messages.map((m) => customScorer(m, messages)));
   }
 
   // Use heuristics for basic scoring
-  return messages.map(msg => {
+  return messages.map((msg) => {
     let score = 0.5;
 
     // Questions are important
@@ -734,8 +686,16 @@ async function scoreMessageImportance(
     if (msg.content.length > 200) score += 0.1;
 
     // Messages with specific keywords
-    const importantKeywords = ['decided', 'agreed', 'important', 'remember', 'key', 'must', 'should'];
-    if (importantKeywords.some(kw => msg.content.toLowerCase().includes(kw))) {
+    const importantKeywords = [
+      'decided',
+      'agreed',
+      'important',
+      'remember',
+      'key',
+      'must',
+      'should',
+    ];
+    if (importantKeywords.some((kw) => msg.content.toLowerCase().includes(kw))) {
       score += 0.15;
     }
 
@@ -762,24 +722,24 @@ export function createMemorySummarizer(
   switch (strategy) {
     case 'sliding_window':
       return createSlidingWindowSummarizer({ provider });
-    
+
     case 'semantic_compression':
       if (!provider) throw new Error('Provider required for semantic compression');
       return createSemanticCompressionSummarizer(provider);
-    
+
     case 'hierarchical':
       if (!provider) throw new Error('Provider required for hierarchical summarization');
       return createHierarchicalSummarizer(provider);
-    
+
     case 'importance_based':
       if (!provider) throw new Error('Provider required for importance-based summarization');
       return createImportanceBasedSummarizer(provider);
-    
+
     case 'hybrid':
       // Hybrid combines sliding window with semantic compression
       if (!provider) throw new Error('Provider required for hybrid strategy');
       return createSemanticCompressionSummarizer(provider);
-    
+
     default:
       return createSlidingWindowSummarizer();
   }

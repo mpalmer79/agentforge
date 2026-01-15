@@ -1,6 +1,6 @@
 /**
  * Graceful Degradation System
- * 
+ *
  * Patterns for maintaining service availability when components fail:
  * - Feature flags
  * - Capability degradation
@@ -51,11 +51,11 @@ export interface FallbackResponse {
   metadata?: Record<string, unknown>;
 }
 
-export type FallbackStrategy = 
-  | 'cached'      // Return cached response
-  | 'static'      // Return static fallback
-  | 'simplified'  // Simplify the request and retry
-  | 'error';      // Return error message
+export type FallbackStrategy =
+  | 'cached' // Return cached response
+  | 'static' // Return static fallback
+  | 'simplified' // Simplify the request and retry
+  | 'error'; // Return error message
 
 // ============================================
 // Degradation Manager
@@ -284,8 +284,8 @@ export function createDegradedTool(
     retries?: number;
   }
 ): Tool {
-  const { 
-    degradationManager, 
+  const {
+    degradationManager,
     fallbackResult = { error: 'Tool temporarily unavailable' },
     timeout = 30000,
     retries = 1,
@@ -315,7 +315,7 @@ export function createDegradedTool(
           // Execute with timeout
           const result = await Promise.race([
             tool.execute(args),
-            new Promise((_, reject) => 
+            new Promise((_, reject) =>
               setTimeout(() => reject(new Error('Tool execution timeout')), timeout)
             ),
           ]);
@@ -327,10 +327,11 @@ export function createDegradedTool(
           });
 
           return result;
-
         } catch (error) {
           lastError = error instanceof Error ? error : new Error(String(error));
-          logger.warn(`Tool execution failed (attempt ${attempt + 1})`, { error: lastError.message });
+          logger.warn(`Tool execution failed (attempt ${attempt + 1})`, {
+            error: lastError.message,
+          });
         }
       }
 
@@ -411,13 +412,12 @@ export async function executeWithHealthAwareness<T>(
 
   try {
     const result = await fn();
-    
+
     // Record success
     const latency = Date.now() - startTime;
     getTelemetry().recordLatency('health_aware.execution', latency);
 
     return result;
-
   } catch (error) {
     // Record failure and potentially degrade
     getTelemetry().incrementCounter('health_aware.failure');
@@ -483,15 +483,18 @@ export function createDegradationManager(
 
   // Register common fallbacks
   manager.registerFallback('provider_unavailable', {
-    content: "I'm currently experiencing some difficulties connecting to my backend services. Please try again in a moment.",
+    content:
+      "I'm currently experiencing some difficulties connecting to my backend services. Please try again in a moment.",
   });
 
   manager.registerFallback('rate_limited', {
-    content: "I'm receiving a high volume of requests right now. Please wait a moment before trying again.",
+    content:
+      "I'm receiving a high volume of requests right now. Please wait a moment before trying again.",
   });
 
   manager.registerFallback('tool_unavailable', {
-    content: "Some of my capabilities are temporarily limited. I'll do my best to help with what's available.",
+    content:
+      "Some of my capabilities are temporarily limited. I'll do my best to help with what's available.",
   });
 
   manager.registerFallback('offline', {
@@ -509,7 +512,7 @@ export function createDegradedTools(
   degradationManager: DegradationManager,
   options: { timeout?: number; retries?: number } = {}
 ): Tool[] {
-  return tools.map(tool => {
+  return tools.map((tool) => {
     degradationManager.registerCapability(`tool:${tool.name}`, true);
     return createDegradedTool(tool, { degradationManager, ...options });
   });

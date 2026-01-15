@@ -216,10 +216,7 @@ export class ProviderError extends AgentForgeError {
     this.rawResponse = options?.rawResponse;
   }
 
-  static rateLimited(
-    providerName: string,
-    retryAfterMs?: number
-  ): ProviderError {
+  static rateLimited(providerName: string, retryAfterMs?: number): ProviderError {
     return new ProviderError(
       `Rate limit exceeded for ${providerName}. ${retryAfterMs ? `Retry after ${retryAfterMs}ms.` : 'Please wait before retrying.'}`,
       providerName,
@@ -257,14 +254,10 @@ export class ProviderError extends AgentForgeError {
     details: string,
     rawResponse?: unknown
   ): ProviderError {
-    return new ProviderError(
-      `Invalid response from ${providerName}: ${details}`,
-      providerName,
-      {
-        rawResponse,
-        retryable: false,
-      }
-    );
+    return new ProviderError(`Invalid response from ${providerName}: ${details}`, providerName, {
+      rawResponse,
+      retryable: false,
+    });
   }
 }
 
@@ -314,10 +307,7 @@ export class ToolExecutionError extends AgentForgeError {
     return error;
   }
 
-  static validationFailed(
-    toolName: string,
-    validationError: Error
-  ): ToolExecutionError {
+  static validationFailed(toolName: string, validationError: Error): ToolExecutionError {
     const error = new ToolExecutionError(
       `Validation failed for tool "${toolName}": ${validationError.message}`,
       toolName,
@@ -392,10 +382,10 @@ export class ValidationError extends AgentForgeError {
   }
 
   static invalidFormat(field: string, format: string): ValidationError {
-    return new ValidationError(
-      `Invalid format for "${field}": expected ${format}.`,
-      { field, expectedType: format }
-    );
+    return new ValidationError(`Invalid format for "${field}": expected ${format}.`, {
+      field,
+      expectedType: format,
+    });
   }
 }
 
@@ -480,13 +470,8 @@ export class ConfigurationError extends AgentForgeError {
     );
   }
 
-  static invalidOption(
-    option: string,
-    reason: string
-  ): ConfigurationError {
-    return new ConfigurationError(
-      `Invalid configuration option "${option}": ${reason}`
-    );
+  static invalidOption(option: string, reason: string): ConfigurationError {
+    return new ConfigurationError(`Invalid configuration option "${option}": ${reason}`);
   }
 }
 
@@ -534,40 +519,24 @@ function getHumanReadableMessage(code: ErrorCode, originalMessage: string): stri
       'Too many requests. Please wait a moment before trying again.',
     [ErrorCode.PROVIDER_AUTHENTICATION_FAILED]:
       'Authentication failed. Please check your API credentials.',
-    [ErrorCode.PROVIDER_INVALID_RESPONSE]:
-      'Received an unexpected response from the AI service.',
-    [ErrorCode.PROVIDER_TIMEOUT]:
-      'The request took too long. Please try again.',
+    [ErrorCode.PROVIDER_INVALID_RESPONSE]: 'Received an unexpected response from the AI service.',
+    [ErrorCode.PROVIDER_TIMEOUT]: 'The request took too long. Please try again.',
     [ErrorCode.PROVIDER_CONTENT_FILTERED]:
       'The content was filtered by the AI service safety systems.',
-    [ErrorCode.AGENT_MAX_ITERATIONS]:
-      'The assistant took too many steps to complete the task.',
-    [ErrorCode.AGENT_ABORTED]:
-      'The operation was cancelled.',
-    [ErrorCode.AGENT_NOT_INITIALIZED]:
-      'The assistant is not ready. Please try again.',
-    [ErrorCode.TOOL_NOT_FOUND]:
-      'A required tool is not available.',
-    [ErrorCode.TOOL_EXECUTION_FAILED]:
-      'An error occurred while running a tool.',
-    [ErrorCode.TOOL_VALIDATION_FAILED]:
-      'Invalid input was provided to a tool.',
-    [ErrorCode.TOOL_TIMEOUT]:
-      'A tool took too long to respond.',
-    [ErrorCode.TOOL_INVALID_NAME]:
-      'Invalid tool name format.',
-    [ErrorCode.VALIDATION_FAILED]:
-      'Invalid input provided.',
-    [ErrorCode.INVALID_CONFIGURATION]:
-      'There is a configuration issue.',
-    [ErrorCode.INVALID_MESSAGE_FORMAT]:
-      'Invalid message format.',
-    [ErrorCode.NETWORK_ERROR]:
-      'A network error occurred. Please check your connection.',
-    [ErrorCode.REQUEST_TIMEOUT]:
-      'The request timed out. Please try again.',
-    [ErrorCode.UNKNOWN]:
-      originalMessage,
+    [ErrorCode.AGENT_MAX_ITERATIONS]: 'The assistant took too many steps to complete the task.',
+    [ErrorCode.AGENT_ABORTED]: 'The operation was cancelled.',
+    [ErrorCode.AGENT_NOT_INITIALIZED]: 'The assistant is not ready. Please try again.',
+    [ErrorCode.TOOL_NOT_FOUND]: 'A required tool is not available.',
+    [ErrorCode.TOOL_EXECUTION_FAILED]: 'An error occurred while running a tool.',
+    [ErrorCode.TOOL_VALIDATION_FAILED]: 'Invalid input was provided to a tool.',
+    [ErrorCode.TOOL_TIMEOUT]: 'A tool took too long to respond.',
+    [ErrorCode.TOOL_INVALID_NAME]: 'Invalid tool name format.',
+    [ErrorCode.VALIDATION_FAILED]: 'Invalid input provided.',
+    [ErrorCode.INVALID_CONFIGURATION]: 'There is a configuration issue.',
+    [ErrorCode.INVALID_MESSAGE_FORMAT]: 'Invalid message format.',
+    [ErrorCode.NETWORK_ERROR]: 'A network error occurred. Please check your connection.',
+    [ErrorCode.REQUEST_TIMEOUT]: 'The request timed out. Please try again.',
+    [ErrorCode.UNKNOWN]: originalMessage,
   };
 
   return messages[code] || originalMessage;

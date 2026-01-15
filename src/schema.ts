@@ -1,6 +1,6 @@
 /**
  * Runtime schema validation for provider responses
- * 
+ *
  * Validates responses from LLM providers to catch malformed data early
  * and provide helpful error messages.
  */
@@ -26,11 +26,13 @@ export const ToolCallSchema = z.object({
 /**
  * Usage statistics schema
  */
-export const UsageSchema = z.object({
-  promptTokens: z.number().nonnegative(),
-  completionTokens: z.number().nonnegative(),
-  totalTokens: z.number().nonnegative(),
-}).optional();
+export const UsageSchema = z
+  .object({
+    promptTokens: z.number().nonnegative(),
+    completionTokens: z.number().nonnegative(),
+    totalTokens: z.number().nonnegative(),
+  })
+  .optional();
 
 /**
  * Completion response schema
@@ -50,15 +52,20 @@ export const StreamChunkSchema = z.object({
   id: z.string(),
   delta: z.object({
     content: z.string().optional(),
-    toolCalls: z.array(
-      z.object({
-        id: z.string().optional(),
-        name: z.string().optional(),
-        arguments: z.record(z.unknown()).optional(),
-      })
-    ).optional(),
+    toolCalls: z
+      .array(
+        z.object({
+          id: z.string().optional(),
+          name: z.string().optional(),
+          arguments: z.record(z.unknown()).optional(),
+        })
+      )
+      .optional(),
   }),
-  finishReason: z.enum(['stop', 'tool_calls', 'length', 'error', 'content_filter']).nullable().optional(),
+  finishReason: z
+    .enum(['stop', 'tool_calls', 'length', 'error', 'content_filter'])
+    .nullable()
+    .optional(),
 });
 
 /**
@@ -92,22 +99,32 @@ export const AgentConfigSchema = z.object({
     complete: z.function(),
     stream: z.function(),
   }),
-  tools: z.array(z.object({
-    name: z.string(),
-    description: z.string(),
-    parameters: z.any(),
-    execute: z.function(),
-    toJSON: z.function(),
-  })).optional(),
+  tools: z
+    .array(
+      z.object({
+        name: z.string(),
+        description: z.string(),
+        parameters: z.any(),
+        execute: z.function(),
+        toJSON: z.function(),
+      })
+    )
+    .optional(),
   systemPrompt: z.string().optional(),
-  middleware: z.array(z.object({
-    name: z.string(),
-  })).optional(),
-  memory: z.object({
-    maxMessages: z.number().int().positive().optional(),
-    maxTokens: z.number().int().positive().optional(),
-    strategy: z.enum(['sliding-window', 'summarize', 'trim-oldest']).optional(),
-  }).optional(),
+  middleware: z
+    .array(
+      z.object({
+        name: z.string(),
+      })
+    )
+    .optional(),
+  memory: z
+    .object({
+      maxMessages: z.number().int().positive().optional(),
+      maxTokens: z.number().int().positive().optional(),
+      strategy: z.enum(['sliding-window', 'summarize', 'trim-oldest']).optional(),
+    })
+    .optional(),
   maxIterations: z.number().int().positive().max(100).optional(),
   temperature: z.number().min(0).max(2).optional(),
   maxTokens: z.number().int().positive().optional(),
@@ -133,18 +150,18 @@ export function validate<T>(
   context?: string
 ): ValidationResult<T> {
   const result = schema.safeParse(data);
-  
+
   if (result.success) {
     return { success: true, data: result.data };
   }
-  
+
   const errors = result.error.errors;
   const errorMessage = formatValidationErrors(errors, context);
-  
+
   getTelemetry().incrementCounter('validation.failure', {
     context: context ?? 'unknown',
   });
-  
+
   return {
     success: false,
     errors,
@@ -155,19 +172,15 @@ export function validate<T>(
 /**
  * Validate and throw on failure
  */
-export function validateOrThrow<T>(
-  schema: z.ZodType<T>,
-  data: unknown,
-  context?: string
-): T {
+export function validateOrThrow<T>(schema: z.ZodType<T>, data: unknown, context?: string): T {
   const result = validate(schema, data, context);
-  
+
   if (!result.success) {
     throw new ValidationError(result.errorMessage!, {
       field: result.errors?.[0]?.path.join('.'),
     });
   }
-  
+
   return result.data!;
 }
 
@@ -175,7 +188,11 @@ export function validateOrThrow<T>(
  * Validate completion response from provider
  */
 export function validateCompletionResponse(response: unknown): CompletionResponse {
-  return validateOrThrow(CompletionResponseSchema, response, 'CompletionResponse') as CompletionResponse;
+  return validateOrThrow(
+    CompletionResponseSchema,
+    response,
+    'CompletionResponse'
+  ) as CompletionResponse;
 }
 
 /**
@@ -209,7 +226,7 @@ export function validateProviderConfig(config: unknown): z.infer<typeof Provider
  */
 export function sanitizeCompletionResponse(response: unknown): CompletionResponse {
   const raw = response as Record<string, unknown>;
-  
+
   // Ensure we have required fields with defaults
   const sanitized: CompletionResponse = {
     id: String(raw.id ?? `generated_${Date.now()}`),
@@ -218,7 +235,7 @@ export function sanitizeCompletionResponse(response: unknown): CompletionRespons
     toolCalls: sanitizeToolCalls(raw.toolCalls),
     usage: sanitizeUsage(raw.usage),
   };
-  
+
   // Log sanitization if we made changes
   if (sanitized.id !== raw.id || sanitized.finishReason !== raw.finishReason) {
     getTelemetry().debug('Sanitized completion response', {
@@ -228,37 +245,39 @@ export function sanitizeCompletionResponse(response: unknown): CompletionRespons
       sanitizedFinishReason: sanitized.finishReason,
     });
   }
-  
+
   return sanitized;
 }
 
-function normalizeFinishReason(reason: unknown): 'stop' | 'tool_calls' | 'length' | 'error' | 'content_filter' {
+function normalizeFinishReason(
+  reason: unknown
+): 'stop' | 'tool_calls' | 'length' | 'error' | 'content_filter' {
   if (typeof reason !== 'string') return 'stop';
-  
+
   const normalized = reason.toLowerCase();
-  
+
   // Map various provider-specific values
   const mapping: Record<string, 'stop' | 'tool_calls' | 'length' | 'error' | 'content_filter'> = {
-    'stop': 'stop',
-    'end': 'stop',
-    'end_turn': 'stop',
-    'tool_calls': 'tool_calls',
-    'function_call': 'tool_calls',
-    'tool_use': 'tool_calls',
-    'length': 'length',
-    'max_tokens': 'length',
-    'error': 'error',
-    'content_filter': 'content_filter',
-    'safety': 'content_filter',
+    stop: 'stop',
+    end: 'stop',
+    end_turn: 'stop',
+    tool_calls: 'tool_calls',
+    function_call: 'tool_calls',
+    tool_use: 'tool_calls',
+    length: 'length',
+    max_tokens: 'length',
+    error: 'error',
+    content_filter: 'content_filter',
+    safety: 'content_filter',
   };
-  
+
   return mapping[normalized] ?? 'stop';
 }
 
 function sanitizeToolCalls(toolCalls: unknown): ToolCall[] | undefined {
   if (!Array.isArray(toolCalls)) return undefined;
   if (toolCalls.length === 0) return undefined;
-  
+
   const result = toolCalls
     .filter((tc): tc is Record<string, unknown> => tc && typeof tc === 'object')
     .map((tc, index) => {
@@ -271,14 +290,14 @@ function sanitizeToolCalls(toolCalls: unknown): ToolCall[] | undefined {
       };
       return toolCall;
     })
-    .filter(tc => tc.name !== 'unknown');
-  
+    .filter((tc) => tc.name !== 'unknown');
+
   return result.length > 0 ? result : undefined;
 }
 
 function parseArguments(args: unknown): Record<string, unknown> {
   if (!args) return {};
-  
+
   if (typeof args === 'string') {
     try {
       return JSON.parse(args);
@@ -287,19 +306,19 @@ function parseArguments(args: unknown): Record<string, unknown> {
       return {};
     }
   }
-  
+
   if (typeof args === 'object' && !Array.isArray(args)) {
     return args as Record<string, unknown>;
   }
-  
+
   return {};
 }
 
 function sanitizeUsage(usage: unknown): CompletionResponse['usage'] {
   if (!usage || typeof usage !== 'object') return undefined;
-  
+
   const raw = usage as Record<string, unknown>;
-  
+
   return {
     promptTokens: Number(raw.promptTokens ?? raw.prompt_tokens ?? 0),
     completionTokens: Number(raw.completionTokens ?? raw.completion_tokens ?? 0),
@@ -313,12 +332,12 @@ function sanitizeUsage(usage: unknown): CompletionResponse['usage'] {
 
 function formatValidationErrors(errors: z.ZodError['errors'], context?: string): string {
   const prefix = context ? `Validation failed for ${context}: ` : 'Validation failed: ';
-  
-  const messages = errors.map(error => {
+
+  const messages = errors.map((error) => {
     const path = error.path.length > 0 ? `${error.path.join('.')}: ` : '';
     return `${path}${error.message}`;
   });
-  
+
   return prefix + messages.join('; ');
 }
 
@@ -345,7 +364,7 @@ export function validateJSON<T = unknown>(
   schema?: z.ZodType<T>
 ): ValidationResult<T> {
   let parsed: unknown;
-  
+
   try {
     parsed = JSON.parse(jsonString);
   } catch (e) {
@@ -354,11 +373,11 @@ export function validateJSON<T = unknown>(
       errorMessage: `Invalid JSON: ${e instanceof Error ? e.message : 'Parse error'}`,
     };
   }
-  
+
   if (schema) {
     return validate(schema, parsed, 'JSON');
   }
-  
+
   return { success: true, data: parsed as T };
 }
 
@@ -405,16 +424,11 @@ export function assertNonEmpty(
 /**
  * Assert that a number is within range
  */
-export function assertInRange(
-  value: number,
-  min: number,
-  max: number,
-  field: string
-): void {
+export function assertInRange(value: number, min: number, max: number, field: string): void {
   if (value < min || value > max) {
-    throw new ValidationError(
-      `${field} must be between ${min} and ${max}, got ${value}`,
-      { field, expectedType: `number (${min}-${max})` }
-    );
+    throw new ValidationError(`${field} must be between ${min} and ${max}, got ${value}`, {
+      field,
+      expectedType: `number (${min}-${max})`,
+    });
   }
 }

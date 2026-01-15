@@ -77,7 +77,7 @@ describe('getTokenCounter', () => {
     const counter = getTokenCounter('gpt-4');
     const proseCount = counter.count('This is a simple sentence about programming.');
     const codeCount = counter.count('function calculateSum(a, b) { return a + b; }');
-    
+
     // Code typically has more tokens due to special characters
     expect(codeCount).toBeGreaterThanOrEqual(proseCount * 0.8);
   });
@@ -96,9 +96,7 @@ describe('getTokenCounter', () => {
 
 describe('calculateBudget', () => {
   it('should calculate token budget correctly', () => {
-    const budget = calculateBudget('gpt-4', [
-      { role: 'user', content: 'Hello, how are you?' },
-    ]);
+    const budget = calculateBudget('gpt-4', [{ role: 'user', content: 'Hello, how are you?' }]);
 
     expect(budget.total).toBeLessThanOrEqual(8192);
     expect(budget.used).toBeGreaterThan(0);
@@ -115,7 +113,10 @@ describe('calculateBudget', () => {
   });
 
   it('should handle large message histories', () => {
-    const messages = Array(100).fill({ role: 'user', content: 'This is a test message with some content.' });
+    const messages = Array(100).fill({
+      role: 'user',
+      content: 'This is a test message with some content.',
+    });
     const budget = calculateBudget('gpt-4', messages);
 
     expect(budget.used).toBeGreaterThan(0);
@@ -158,7 +159,8 @@ describe('truncateToTokens', () => {
   });
 
   it('should preserve context in middle truncation', () => {
-    const longText = 'Start of important context. ' + 'Middle content. '.repeat(100) + 'End of important context.';
+    const longText =
+      'Start of important context. ' + 'Middle content. '.repeat(100) + 'End of important context.';
     const result = truncateToTokens(longText, {
       maxTokens: 100,
       strategy: 'middle',
@@ -172,7 +174,8 @@ describe('truncateToTokens', () => {
   });
 
   it('should handle smart truncation by sentences', () => {
-    const text = 'First sentence is important. Second sentence is also good. Third sentence has more info. Fourth continues. Fifth is last.';
+    const text =
+      'First sentence is important. Second sentence is also good. Third sentence has more info. Fourth continues. Fifth is last.';
     const result = truncateToTokens(text, {
       maxTokens: 15,
       strategy: 'smart',

@@ -63,9 +63,7 @@ describe('utils', () => {
     it('should throw after max retries', async () => {
       const fn = vi.fn().mockRejectedValue(new Error('always fails'));
 
-      await expect(retry(fn, { maxRetries: 2, baseDelay: 10 })).rejects.toThrow(
-        'always fails'
-      );
+      await expect(retry(fn, { maxRetries: 2, baseDelay: 10 })).rejects.toThrow('always fails');
       expect(fn).toHaveBeenCalledTimes(3); // Initial + 2 retries
     });
 
