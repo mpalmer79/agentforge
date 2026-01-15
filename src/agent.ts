@@ -420,7 +420,10 @@ export class Agent {
 
       // Apply circuit breaker if configured
       if (this.circuitBreaker) {
-        callFn = ((originalFn) => () => this.circuitBreaker!.execute(originalFn))(callFn);
+        callFn = (
+          (originalFn) => () =>
+            this.circuitBreaker!.execute(originalFn)
+        )(callFn);
       }
 
       // Apply retry with backoff
@@ -724,7 +727,10 @@ export class Agent {
 
       // Apply circuit breaker if configured
       if (this.circuitBreaker) {
-        streamFn = ((originalFn) => () => this.circuitBreaker!.execute(originalFn))(streamFn);
+        streamFn = (
+          (originalFn) => () =>
+            this.circuitBreaker!.execute(originalFn)
+        )(streamFn);
       }
 
       // Execute with resilience (no retry for streams - they're not idempotent mid-flight)
