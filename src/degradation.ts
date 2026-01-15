@@ -369,7 +369,7 @@ export function simplifyResponse(response: CompletionResponse): CompletionRespon
  * Create a degraded response
  */
 export function createDegradedResponse(
-  originalRequest: { messages: Message[] },
+  _originalRequest: { messages: Message[] },
   reason: string
 ): CompletionResponse {
   return {
@@ -419,8 +419,6 @@ export async function executeWithHealthAwareness<T>(
     return result;
 
   } catch (error) {
-    const latency = Date.now() - startTime;
-    
     // Record failure and potentially degrade
     getTelemetry().incrementCounter('health_aware.failure');
 
