@@ -87,12 +87,10 @@ export class AnthropicProvider extends BaseProvider {
 
   async complete(request: CompletionRequest): Promise<CompletionResponse> {
     const body = this.buildRequestBody(request);
-
     const response = await this.fetch<AnthropicResponse>('/v1/messages', {
       method: 'POST',
       body: JSON.stringify(body),
     });
-
     return this.parseResponse(response);
   }
 
@@ -102,8 +100,8 @@ export class AnthropicProvider extends BaseProvider {
       stream: true,
     };
 
-    let currentId = generateId('stream');
-    let currentContent = '';
+    const currentId = generateId('stream');
+    let _currentContent = '';
     const toolCalls: Array<{ id: string; name: string; arguments: string }> = [];
     let currentToolIndex = -1;
 
@@ -115,7 +113,7 @@ export class AnthropicProvider extends BaseProvider {
         const event: AnthropicStreamEvent = JSON.parse(data);
 
         switch (event.type) {
-          case 'content_block_start':
+          case 'content_block_start': {
             if (event.content_block?.type === 'tool_use') {
               currentToolIndex++;
               toolCalls[currentToolIndex] = {
@@ -125,10 +123,11 @@ export class AnthropicProvider extends BaseProvider {
               };
             }
             break;
+          }
 
-          case 'content_block_delta':
+          case 'content_block_delta': {
             if (event.delta?.type === 'text_delta' && event.delta.text) {
-              currentContent += event.delta.text;
+              _currentContent += event.delta.text;
               yield {
                 id: currentId,
                 delta: { content: event.delta.text },
@@ -139,8 +138,9 @@ export class AnthropicProvider extends BaseProvider {
               }
             }
             break;
+          }
 
-          case 'message_stop':
+          case 'message_stop': {
             const finishReason = toolCalls.length > 0 ? 'tool_calls' : 'stop';
             yield {
               id: currentId,
@@ -157,6 +157,7 @@ export class AnthropicProvider extends BaseProvider {
               finishReason,
             };
             break;
+          }
         }
       } catch {
         // Skip invalid events
