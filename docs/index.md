@@ -10,7 +10,7 @@ hero:
     alt: AgentForge
   actions:
     - theme: brand
-      text: Get Started →
+      text: Get Started
       link: /guide/getting-started
     - theme: alt
       text: View on GitHub
@@ -642,7 +642,7 @@ onMounted(() => {
   </p>
   <div class="project-status">
     <span class="dot"></span>
-    Active development · Designed with production patterns · Open source
+    Active development - Designed with production patterns - Open source
   </div>
 </div>
 
@@ -707,7 +707,7 @@ const agent = new Agent({
 // Run it
 const response = await agent.run('What is the weather in Boston?');
 console.log(response.content);
-// → "The current weather in Boston is 72°F and sunny!"
+// -> "The current weather in Boston is 72F and sunny!"
 ```
 
 </div>
@@ -725,7 +725,7 @@ console.log(response.content);
   <div class="why-grid">
     <div class="why-item">
       <h3>🎯 Type Safety First</h3>
-      <p>Every tool parameter, every response, every error — fully typed. Catch bugs at compile time, not in production.</p>
+      <p>Every tool parameter, every response, every error - fully typed. Catch bugs at compile time, not in production.</p>
     </div>
     <div class="why-item">
       <h3>🏗️ Production Architecture</h3>
@@ -741,7 +741,7 @@ console.log(response.content);
     </div>
     <div class="why-item">
       <h3>🧪 Testable by Design</h3>
-      <p>Mock providers, test tools in isolation, verify middleware behavior. Testing AI agents shouldn't be hard.</p>
+      <p>Mock providers, test tools in isolation, verify middleware behavior. Testing AI agents should not be hard.</p>
     </div>
     <div class="why-item">
       <h3>📚 Extensively Documented</h3>
@@ -754,7 +754,7 @@ console.log(response.content);
   <h2>Ready to Build?</h2>
   <p>Start building production-ready AI agents in minutes.</p>
   <div class="cta-buttons">
-    <a href="/agentforge/guide/getting-started" class="cta-button primary">Get Started →</a>
+    <a href="/agentforge/guide/getting-started" class="cta-button primary">Get Started</a>
     <a href="https://github.com/mpalmer79/agentforge" class="cta-button secondary">View Source</a>
   </div>
 </div>
