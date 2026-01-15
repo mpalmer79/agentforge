@@ -82,7 +82,8 @@ export default defineConfig({
           text: 'Introduction',
           items: [
             { text: 'Getting Started', link: '/guide/getting-started' },
-            { text: 'Core Concepts', link: '/guide/core-concepts' }
+            { text: 'Core Concepts', link: '/guide/core-concepts' },
+            { text: 'Architecture', link: '/guide/architecture' }
           ]
         },
         {
@@ -90,6 +91,7 @@ export default defineConfig({
           items: [
             { text: 'Tools', link: '/guide/tools' },
             { text: 'Providers', link: '/guide/providers' },
+            { text: 'Choosing Providers', link: '/guide/choosing-providers' },
             { text: 'Middleware', link: '/guide/middleware' },
             { text: 'Memory Management', link: '/guide/memory' }
           ]
@@ -101,6 +103,12 @@ export default defineConfig({
             { text: 'Error Handling', link: '/guide/error-handling' },
             { text: 'React Integration', link: '/guide/react-integration' },
             { text: 'Plugins & Events', link: '/guide/plugins-events' }
+          ]
+        },
+        {
+          text: 'Production',
+          items: [
+            { text: 'Security', link: '/guide/security' }
           ]
         }
       ],
@@ -164,3 +172,22 @@ export default defineConfig({
     lineNumbers: true
   }
 })
+```
+
+---
+
+**Changes:**
+
+| Section | Added |
+|---------|-------|
+| Introduction | Architecture |
+| Essentials | Choosing Providers |
+| New "Production" section | Security |
+
+Error Handling was already in the Advanced section, so no change needed there.
+
+---
+
+**File path:**
+```
+docs/.vitepress/config.ts
