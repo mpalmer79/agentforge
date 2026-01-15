@@ -251,7 +251,7 @@ export function createMetricsInterceptor(): { request: RequestInterceptor; respo
   const telemetry = getTelemetry();
 
   return {
-    request: async (request, context) => {
+    request: async (request, _context) => {
       telemetry.incrementCounter('interceptor.requests', { 
         messageCount: String(request.messages.length),
       });
@@ -296,7 +296,7 @@ export function createContentFilterInterceptor(options: {
   };
 
   return {
-    request: async (request, context) => {
+    request: async (request, _context) => {
       if (!filterInput) return { data: request, continue: true };
 
       const filteredMessages = request.messages.map(msg => ({
@@ -309,7 +309,7 @@ export function createContentFilterInterceptor(options: {
         continue: true,
       };
     },
-    response: async (response, context) => {
+    response: async (response, _context) => {
       if (!filterOutput) return { data: response, continue: true };
 
       return {
@@ -472,7 +472,7 @@ export function createCircuitBreakerErrorInterceptor(options: {
   let circuitOpen = false;
   let lastFailureTime = 0;
 
-  return async (error, _context) => {
+  return async (_error, _context) => {
     const now = Date.now();
 
     // Check if we should reset
