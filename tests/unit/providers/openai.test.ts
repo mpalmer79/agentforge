@@ -16,7 +16,7 @@ describe('OpenAIProvider', () => {
     });
 
     it('should throw without API key', () => {
-      expect(() => new OpenAIProvider({ apiKey: '' })).toThrow(/API key is required/);
+      expect(() => new OpenAIProvider({ apiKey: '' })).toThrow(/Authentication failed/);
     });
 
     it('should use default model', () => {
