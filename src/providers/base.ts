@@ -5,7 +5,7 @@ import type {
   CompletionResponse,
   StreamChunk,
 } from '../types';
-import { ProviderError } from '../types';
+import { ProviderError } from '../errors';
 import { retry } from '../utils';
 
 /**
@@ -22,7 +22,7 @@ export abstract class BaseProvider implements Provider {
 
   constructor(config: ProviderConfig) {
     if (!config.apiKey) {
-      throw new ProviderError('API key is required');
+      throw ProviderError.authenticationFailed(this.constructor.name);
     }
 
     this.apiKey = config.apiKey;
@@ -66,7 +66,11 @@ export abstract class BaseProvider implements Provider {
           const errorBody = await response.text();
           throw new ProviderError(
             `${this.name} API error: ${response.status} - ${errorBody}`,
-            response.status
+            this.name,
+            {
+              statusCode: response.status,
+              rawResponse: errorBody,
+            }
           );
         }
 
@@ -81,7 +85,9 @@ export abstract class BaseProvider implements Provider {
       shouldRetry: (error) => {
         if (error instanceof ProviderError) {
           // Retry on rate limits (429) and server errors (5xx)
-          return error.statusCode === 429 || (error.statusCode ?? 0) >= 500;
+          return (
+            error.statusCode === 429 || (error.statusCode ?? 0) >= 500
+          );
         }
         return false;
       },
@@ -110,12 +116,19 @@ export abstract class BaseProvider implements Provider {
       const errorBody = await response.text();
       throw new ProviderError(
         `${this.name} API error: ${response.status} - ${errorBody}`,
-        response.status
+        this.name,
+        {
+          statusCode: response.status,
+          rawResponse: errorBody,
+        }
       );
     }
 
     if (!response.body) {
-      throw new ProviderError('Response body is null');
+      throw ProviderError.invalidResponse(
+        this.name,
+        'Response body is null'
+      );
     }
 
     const reader = response.body.getReader();
@@ -125,6 +138,7 @@ export abstract class BaseProvider implements Provider {
     try {
       while (true) {
         const { done, value } = await reader.read();
+
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
