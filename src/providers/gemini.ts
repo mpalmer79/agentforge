@@ -104,13 +104,14 @@ export interface GeminiProviderConfig extends ProviderConfig {
  */
 export class GeminiProvider extends BaseProvider {
   name = 'gemini';
-  private projectId?: string;
-  private safetyThreshold: string;
+  // Reserved for future use (Vertex AI integration)
+  private _projectId?: string;
+  private _safetyThreshold: string;
 
   constructor(config: GeminiProviderConfig) {
     super(config);
-    this.projectId = config.projectId;
-    this.safetyThreshold = config.safetyThreshold ?? 'BLOCK_MEDIUM_AND_ABOVE';
+    this._projectId = config.projectId;
+    this._safetyThreshold = config.safetyThreshold ?? 'BLOCK_MEDIUM_AND_ABOVE';
   }
 
   protected getDefaultModel(): string {
