@@ -385,7 +385,10 @@ export class Agent {
   /**
    * Execute provider call with all resilience patterns
    */
-  private async executeProviderCall(context: MiddlewareContext, traceId?: string): Promise<any> {
+  private async executeProviderCall(
+    context: MiddlewareContext,
+    traceId?: string
+  ): Promise<CompletionResponse> {
     const spanId = traceId
       ? this.telemetry.startSpan(traceId, 'provider.complete', { provider: this.provider.name })
       : '';
@@ -420,10 +423,7 @@ export class Agent {
 
       // Apply circuit breaker if configured
       if (this.circuitBreaker) {
-        callFn = (
-          (originalFn) => () =>
-            this.circuitBreaker!.execute(originalFn)
-        )(callFn);
+        callFn = ((originalFn) => () => this.circuitBreaker!.execute(originalFn))(callFn);
       }
 
       // Apply retry with backoff
@@ -670,7 +670,7 @@ export class Agent {
 
     const executeStream = async () => {
       // Create a promise that rejects on timeout for stream setup
-      const streamSetupPromise = new Promise<AsyncIterable<any>>((resolve, reject) => {
+      const streamSetupPromise = new Promise<AsyncIterable<StreamChunk>>((resolve, reject) => {
         const timeoutId = setTimeout(() => {
           reject(new Error(`Stream setup timed out after ${this.streamSetupTimeoutMs}ms`));
         }, this.streamSetupTimeoutMs);
@@ -727,10 +727,7 @@ export class Agent {
 
       // Apply circuit breaker if configured
       if (this.circuitBreaker) {
-        streamFn = (
-          (originalFn) => () =>
-            this.circuitBreaker!.execute(originalFn)
-        )(streamFn);
+        streamFn = ((originalFn) => () => this.circuitBreaker!.execute(originalFn))(streamFn);
       }
 
       // Execute with resilience (no retry for streams - they're not idempotent mid-flight)
@@ -827,11 +824,12 @@ export class Agent {
       const availableSlots = maxMessages - systemMessages.length;
 
       switch (strategy) {
-        case 'sliding-window':
+        case 'sliding-window': {
           result = [...systemMessages, ...otherMessages.slice(-availableSlots)];
           break;
+        }
 
-        case 'trim-oldest':
+        case 'trim-oldest': {
           const trimmed: Message[] = [];
           let kept = 0;
 
@@ -841,8 +839,9 @@ export class Agent {
           }
           result = [...systemMessages, ...trimmed];
           break;
+        }
 
-        case 'summarize':
+        case 'summarize': {
           if (otherMessages.length > 0 && availableSlots > 1) {
             const firstMessage = otherMessages[0];
             const recentMessages = otherMessages.slice(-(availableSlots - 1));
@@ -856,9 +855,11 @@ export class Agent {
             result = [...systemMessages, ...otherMessages.slice(-availableSlots)];
           }
           break;
+        }
 
-        default:
+        default: {
           result = [...systemMessages, ...otherMessages.slice(-availableSlots)];
+        }
       }
     }
 
@@ -1004,4 +1005,14 @@ export class Agent {
   resetCircuitBreaker(): void {
     this.circuitBreaker?.reset();
   }
+}
+
+// Type for stream chunks used internally
+interface StreamChunk {
+  id?: string;
+  delta: {
+    content?: string;
+    toolCalls?: Array<{ id?: string; name?: string; arguments?: Record<string, unknown> }>;
+  };
+  finishReason?: string;
 }
