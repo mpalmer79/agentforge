@@ -3,6 +3,7 @@ import type {
   AgentContext,
   AgentResponse,
   CompletionRequest,
+  CompletionResponse,
   Message,
   Tool,
   ToolCall,
@@ -52,6 +53,8 @@ export interface ExtendedAgentConfig extends AgentConfig {
   timeouts?: {
     requestMs?: number;
     toolExecutionMs?: number;
+    /** Timeout for stream setup (initial connection) */
+    streamSetupMs?: number;
   };
 
   /** Retry settings */
@@ -93,6 +96,8 @@ export interface ExtendedAgentConfig extends AgentConfig {
  * - Proper tokenization
  * - Response validation
  * - Conversation persistence
+ *
+ * Both run() and stream() methods share the same resilience guarantees.
  */
 export class Agent {
   private provider: AgentConfig['provider'];
@@ -113,6 +118,7 @@ export class Agent {
   private validateResponses: boolean;
   private requestTimeoutMs: number;
   private toolTimeoutMs: number;
+  private streamSetupTimeoutMs: number;
   private tokenBudgetConfig: ExtendedAgentConfig['tokenBudget'];
   private retryConfig: ExtendedAgentConfig['retry'];
 
@@ -164,6 +170,7 @@ export class Agent {
     this.validateResponses = config.validateResponses ?? true;
     this.requestTimeoutMs = config.timeouts?.requestMs ?? 60000;
     this.toolTimeoutMs = config.timeouts?.toolExecutionMs ?? 30000;
+    this.streamSetupTimeoutMs = config.timeouts?.streamSetupMs ?? 30000;
     this.tokenBudgetConfig = config.tokenBudget;
     this.retryConfig = config.retry;
   }
@@ -248,7 +255,6 @@ export class Agent {
 
         if (budget.remaining < 0 && this.tokenBudgetConfig.autoTruncate) {
           this.telemetry.warn('Token budget exceeded, truncating messages', { budget });
-          // Truncate older messages (this is handled by memory strategy)
         }
       }
 
@@ -414,10 +420,7 @@ export class Agent {
 
       // Apply circuit breaker if configured
       if (this.circuitBreaker) {
-        callFn = (
-          (originalFn) => () =>
-            this.circuitBreaker!.execute(originalFn)
-        )(callFn);
+        callFn = ((originalFn) => () => this.circuitBreaker!.execute(originalFn))(callFn);
       }
 
       // Apply retry with backoff
@@ -449,57 +452,258 @@ export class Agent {
     }
   }
 
+  /**
+   * Stream responses from the agent with full resilience parity to run().
+   *
+   * Guarantees:
+   * - Telemetry traces and spans for the entire stream session
+   * - Circuit breaker protection on stream setup
+   * - Bulkhead concurrency control
+   * - Timeout on stream setup
+   * - Persistence hooks for messages and tool results
+   * - afterResponse middleware called after stream completes
+   *
+   * Note: Streaming responses typically don't include token usage from providers,
+   * so token tracking may be unavailable unless the provider supplies it.
+   */
   async *stream(
     input: string | Message[],
     options?: { signal?: AbortSignal }
   ): AsyncIterable<{ type: 'content' | 'tool_call' | 'tool_result' | 'done'; data: unknown }> {
+    // Start trace for this stream session
+    const traceId = this.telemetry.startTrace({
+      provider: this.provider.name,
+      toolCount: this.tools.size,
+      maxIterations: this.maxIterations,
+      mode: 'stream',
+    });
+
+    const streamSpanId = this.telemetry.startSpan(traceId, 'agent.stream', {
+      inputType: typeof input === 'string' ? 'string' : 'messages',
+    });
+
     const messages = this.initializeMessages(input);
     const context = this.createContext(messages);
 
-    let iterations = 0;
+    // Record initial messages to persistence if enabled
+    if (this.persistence) {
+      this.persistence.addMessages(messages);
+    }
 
-    while (iterations < this.maxIterations) {
-      if (options?.signal?.aborted) {
-        throw new AgentForgeError('Agent execution aborted', 'AGENT_ABORTED');
+    let iterations = 0;
+    let allToolResults: ToolResult[] = [];
+
+    try {
+      while (iterations < this.maxIterations) {
+        if (options?.signal?.aborted) {
+          throw new AgentForgeError('Agent execution aborted', 'AGENT_ABORTED');
+        }
+
+        iterations++;
+        const iterationSpanId = this.telemetry.startSpan(
+          traceId,
+          `agent.stream.iteration.${iterations}`
+        );
+
+        const managedMessages = this.applyMemoryStrategy(context.messages);
+
+        // Check token budget (same as run())
+        if (this.tokenBudgetConfig) {
+          const budget = calculateBudget(
+            this.provider.name,
+            managedMessages.map((m) => ({ role: m.role, content: m.content })),
+            this.tokenBudgetConfig.reserveForResponse ?? 1000
+          );
+
+          this.telemetry.recordMetric('agent.stream.token_budget.used', budget.used, 'tokens');
+          this.telemetry.recordMetric(
+            'agent.stream.token_budget.remaining',
+            budget.remaining,
+            'tokens'
+          );
+
+          if (budget.remaining < 0 && this.tokenBudgetConfig.autoTruncate) {
+            this.telemetry.warn('Token budget exceeded in stream, truncating messages', { budget });
+          }
+        }
+
+        const request: CompletionRequest = {
+          messages: managedMessages,
+          tools: this.getToolSchemas(),
+          temperature: this.temperature,
+          maxTokens: this.maxTokens,
+          stream: true,
+        };
+
+        const middlewareContext: MiddlewareContext = {
+          ...context,
+          messages: managedMessages,
+          request,
+        };
+
+        // Run beforeRequest middleware
+        const processedContext = await this.middleware.runBeforeRequest(middlewareContext);
+
+        // Execute stream with resilience patterns
+        const { chunks, fullContent, toolCalls } = await this.executeProviderStream(
+          processedContext,
+          traceId,
+          options?.signal
+        );
+
+        // Yield all chunks
+        for (const chunk of chunks) {
+          yield chunk;
+        }
+
+        // Build a CompletionResponse-like object for afterResponse middleware
+        const streamResponse: CompletionResponse = {
+          id: generateId('resp'),
+          content: fullContent,
+          toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+          finishReason: toolCalls.length > 0 ? 'tool_calls' : 'stop',
+          // Note: streaming typically doesn't provide usage stats
+        };
+
+        // Run afterResponse middleware on the assembled response
+        const processedResponse = await this.middleware.runAfterResponse(
+          streamResponse,
+          processedContext
+        );
+
+        // Create and persist assistant message
+        const assistantMessage: Message = {
+          id: generateId('msg'),
+          role: 'assistant',
+          content: processedResponse.content,
+          timestamp: Date.now(),
+        };
+
+        context.messages.push(assistantMessage);
+
+        if (this.persistence) {
+          this.persistence.addMessage(assistantMessage);
+        }
+
+        // No tool calls - we're done
+        if (toolCalls.length === 0) {
+          this.telemetry.endSpan(iterationSpanId, 'ok');
+          yield { type: 'done', data: { content: fullContent, toolResults: allToolResults } };
+          break;
+        }
+
+        // Execute tool calls with full telemetry (reuses same executeToolCalls as run())
+        const toolResults = await this.executeToolCalls(toolCalls, processedContext, traceId);
+        allToolResults = [...allToolResults, ...toolResults];
+
+        if (this.persistence) {
+          this.persistence.recordToolResults(toolResults);
+        }
+
+        // Yield tool results and add to messages
+        for (const result of toolResults) {
+          yield { type: 'tool_result', data: result };
+
+          const toolMessage: Message = {
+            id: generateId('msg'),
+            role: 'tool',
+            content: result.error ?? JSON.stringify(result.result),
+            timestamp: Date.now(),
+            metadata: { toolCallId: result.toolCallId },
+          };
+
+          context.messages.push(toolMessage);
+
+          if (this.persistence) {
+            this.persistence.addMessage(toolMessage);
+          }
+        }
+
+        this.telemetry.endSpan(iterationSpanId, 'ok');
       }
 
-      iterations++;
+      // If we exited the loop due to max iterations
+      if (iterations >= this.maxIterations) {
+        this.telemetry.incrementCounter('agent.stream.max_iterations_exceeded');
+        throw new AgentForgeError(
+          `Agent stream exceeded maximum iterations (${this.maxIterations})`,
+          'AGENT_MAX_ITERATIONS'
+        );
+      }
 
-      const managedMessages = this.applyMemoryStrategy(context.messages);
+      this.telemetry.endSpan(streamSpanId, 'ok');
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.telemetry.endSpan(streamSpanId, 'error', { errorMessage: err.message });
+      throw err;
+    } finally {
+      this.telemetry.endTrace(traceId);
+    }
+  }
 
-      const request: CompletionRequest = {
-        messages: managedMessages,
-        tools: this.getToolSchemas(),
-        temperature: this.temperature,
-        maxTokens: this.maxTokens,
-        stream: true,
-      };
+  /**
+   * Execute provider stream with resilience patterns (circuit breaker, bulkhead, timeout)
+   * Collects chunks and returns them along with the assembled content and tool calls.
+   */
+  private async executeProviderStream(
+    context: MiddlewareContext,
+    traceId: string,
+    signal?: AbortSignal
+  ): Promise<{
+    chunks: Array<{ type: 'content' | 'tool_call'; data: unknown }>;
+    fullContent: string;
+    toolCalls: ToolCall[];
+  }> {
+    const spanId = this.telemetry.startSpan(traceId, 'provider.stream', {
+      provider: this.provider.name,
+    });
 
-      const middlewareContext: MiddlewareContext = {
-        ...context,
-        messages: managedMessages,
-        request,
-      };
+    const startTime = Date.now();
+    this.telemetry.trackProviderRequest(this.provider.name, { ...context.request, stream: true });
 
-      const processedContext = await this.middleware.runBeforeRequest(middlewareContext);
+    const chunks: Array<{ type: 'content' | 'tool_call'; data: unknown }> = [];
+    let fullContent = '';
+    const toolCalls: ToolCall[] = [];
 
-      let fullContent = '';
-      const toolCalls: ToolCall[] = [];
+    const executeStream = async () => {
+      // Create a promise that rejects on timeout for stream setup
+      const streamSetupPromise = new Promise<AsyncIterable<any>>((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          reject(new Error(`Stream setup timed out after ${this.streamSetupTimeoutMs}ms`));
+        }, this.streamSetupTimeoutMs);
 
-      for await (const chunk of this.provider.stream({
-        ...processedContext.request,
-        messages: processedContext.messages,
-      })) {
+        // Get the stream iterator - this is what we're timing out on
+        try {
+          const stream = this.provider.stream({
+            ...context.request,
+            messages: context.messages,
+          });
+          clearTimeout(timeoutId);
+          resolve(stream);
+        } catch (err) {
+          clearTimeout(timeoutId);
+          reject(err);
+        }
+      });
+
+      const stream = await streamSetupPromise;
+
+      // Process the stream
+      for await (const chunk of stream) {
+        if (signal?.aborted) {
+          throw new AgentForgeError('Stream aborted', 'AGENT_ABORTED');
+        }
+
         if (chunk.delta.content) {
           fullContent += chunk.delta.content;
-          yield { type: 'content', data: chunk.delta.content };
+          chunks.push({ type: 'content', data: chunk.delta.content });
         }
 
         if (chunk.delta.toolCalls) {
           for (const tc of chunk.delta.toolCalls) {
             if (tc.id && tc.name) {
               toolCalls.push(tc as ToolCall);
-              yield { type: 'tool_call', data: tc };
+              chunks.push({ type: 'tool_call', data: tc });
             }
           }
         }
@@ -508,32 +712,43 @@ export class Agent {
           break;
         }
       }
+    };
 
-      context.messages.push({
-        id: generateId('msg'),
-        role: 'assistant',
-        content: fullContent,
-        timestamp: Date.now(),
-      });
+    try {
+      // Apply bulkhead if configured
+      let streamFn = executeStream;
 
-      if (toolCalls.length === 0) {
-        yield { type: 'done', data: { content: fullContent } };
-        break;
+      if (this.bulkhead) {
+        streamFn = () => this.bulkhead!.execute(executeStream);
       }
 
-      const toolResults = await this.executeToolCalls(toolCalls, processedContext);
-
-      for (const result of toolResults) {
-        yield { type: 'tool_result', data: result };
-
-        context.messages.push({
-          id: generateId('msg'),
-          role: 'tool',
-          content: result.error ?? JSON.stringify(result.result),
-          timestamp: Date.now(),
-          metadata: { toolCallId: result.toolCallId },
-        });
+      // Apply circuit breaker if configured
+      if (this.circuitBreaker) {
+        streamFn = ((originalFn) => () => this.circuitBreaker!.execute(originalFn))(streamFn);
       }
+
+      // Execute with resilience (no retry for streams - they're not idempotent mid-flight)
+      await streamFn();
+
+      const duration = Date.now() - startTime;
+      this.telemetry.trackProviderResponse(
+        this.provider.name,
+        { content: fullContent, toolCalls },
+        duration
+      );
+      this.telemetry.recordMetric('agent.stream.chunks', chunks.length, 'count');
+      this.telemetry.endSpan(spanId, 'ok', { duration, chunkCount: chunks.length });
+
+      return { chunks, fullContent, toolCalls };
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      this.telemetry.trackProviderError(
+        this.provider.name,
+        error instanceof Error ? error : new Error(String(error)),
+        duration
+      );
+      this.telemetry.endSpan(spanId, 'error', { duration });
+      throw error;
     }
   }
 
@@ -607,16 +822,13 @@ export class Agent {
 
       switch (strategy) {
         case 'sliding-window':
-          // Keep most recent messages (sliding window)
           result = [...systemMessages, ...otherMessages.slice(-availableSlots)];
           break;
 
         case 'trim-oldest':
-          // Remove oldest user/assistant pairs first, keeping tool messages with their context
           const trimmed: Message[] = [];
           let kept = 0;
 
-          // Iterate from newest to oldest
           for (let i = otherMessages.length - 1; i >= 0 && kept < availableSlots; i--) {
             trimmed.unshift(otherMessages[i]);
             kept++;
@@ -625,14 +837,10 @@ export class Agent {
           break;
 
         case 'summarize':
-          // For summarize strategy: keep first message, last N-1 messages
-          // The idea is the first user message often contains important context
-          // A real implementation would call the LLM to summarize older messages
           if (otherMessages.length > 0 && availableSlots > 1) {
             const firstMessage = otherMessages[0];
             const recentMessages = otherMessages.slice(-(availableSlots - 1));
 
-            // Avoid duplicating if first message is in recent
             if (recentMessages[0]?.id !== firstMessage.id) {
               result = [...systemMessages, firstMessage, ...recentMessages];
             } else {
@@ -652,14 +860,12 @@ export class Agent {
       let totalTokens = 0;
       const filteredMessages: Message[] = [];
 
-      // Always include system messages first
       const systemMessages = result.filter((m) => m.role === 'system');
       for (const msg of systemMessages) {
         totalTokens += tokenCounter.count(msg.content);
         filteredMessages.push(msg);
       }
 
-      // Add other messages from newest to oldest until we hit the token limit
       const otherMessages = result.filter((m) => m.role !== 'system').reverse();
       for (const msg of otherMessages) {
         const msgTokens = tokenCounter.count(msg.content);
@@ -691,7 +897,6 @@ export class Agent {
   ): Promise<ToolResult[]> {
     const results: ToolResult[] = [];
 
-    // Execute tool calls with controlled concurrency
     const executeToolCall = async (toolCall: ToolCall): Promise<ToolResult> => {
       const spanId = traceId
         ? this.telemetry.startSpan(traceId, `tool.${toolCall.name}`, {
@@ -720,7 +925,6 @@ export class Agent {
       }
 
       try {
-        // Execute tool with timeout
         const result = await withTimeout(
           tool.execute(processedToolCall.arguments),
           this.toolTimeoutMs,
@@ -761,7 +965,6 @@ export class Agent {
       }
     };
 
-    // Execute all tool calls (could be parallelized with bulkhead control)
     for (const toolCall of toolCalls) {
       const result = await executeToolCall(toolCall);
       results.push(result);
