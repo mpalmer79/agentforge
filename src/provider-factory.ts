@@ -1,7 +1,7 @@
 /**
  * Provider Factory and Multi-Provider Management
- * 
- * Staff-level provider abstraction with:
+ *
+ * Advanced provider abstraction with:
  * - Factory pattern for provider creation
  * - Multi-provider failover
  * - Load balancing
@@ -44,14 +44,19 @@ export interface CustomProviderConfig {
 export interface MultiProviderConfig {
   /** Primary provider to use */
   primary: ProviderType;
+
   /** Fallback providers in order of preference */
   fallbacks?: ProviderType[];
+
   /** Enable circuit breaker per provider */
   circuitBreaker?: boolean;
+
   /** Enable health checks */
   healthCheck?: boolean;
+
   /** Load balancing strategy */
   loadBalancing?: 'round-robin' | 'least-latency' | 'random' | 'none';
+
   /** Provider-specific overrides */
   providers: ProviderFactoryConfig;
 }
@@ -172,7 +177,7 @@ export class ProviderFactory {
   private createAzureProvider(config: AzureOpenAIConfig): Provider {
     // Create Azure OpenAI compatible provider
     const baseURL = `${config.endpoint}/openai/deployments/${config.deploymentId}`;
-    
+
     return new OpenAIProvider({
       apiKey: config.apiKey,
       baseURL,
@@ -264,9 +269,7 @@ export class ProviderFactory {
 
             try {
               const executeFn = () => provider.complete(request);
-              const response = cb 
-                ? await cb.execute(executeFn)
-                : await executeFn();
+              const response = cb ? await cb.execute(executeFn) : await executeFn();
 
               stats.latencyMs = Date.now() - startTime;
               getTelemetry().recordLatency(`provider.${type}.latency`, stats.latencyMs);
@@ -316,7 +319,6 @@ export class ProviderFactory {
 
         stats.latencyMs = Date.now() - startTime;
         return; // Success, exit
-
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
         stats.errorCount++;
@@ -462,8 +464,8 @@ export function instrumentProvider(provider: Provider): Provider {
 
       try {
         const response = await provider.complete(request);
-        
         const duration = Date.now() - startTime;
+
         telemetry.endSpan(spanId, 'ok', { duration });
         telemetry.recordLatency('provider.complete.duration', duration, { provider: provider.name });
 
@@ -479,15 +481,12 @@ export function instrumentProvider(provider: Provider): Provider {
         });
 
         return response;
-
       } catch (error) {
         const duration = Date.now() - startTime;
         telemetry.endSpan(spanId, 'error');
         telemetry.incrementCounter('provider.complete.error', { provider: provider.name });
-
         logger.error('Completion failed', error instanceof Error ? error : undefined, { duration });
         throw error;
-
       } finally {
         telemetry.endTrace(traceId);
       }
@@ -510,12 +509,10 @@ export function instrumentProvider(provider: Provider): Provider {
         const duration = Date.now() - startTime;
         telemetry.endSpan(spanId, 'ok', { duration, chunkCount });
         logger.info('Stream completed', { duration, chunkCount });
-
       } catch (error) {
         telemetry.endSpan(spanId, 'error');
         logger.error('Stream failed', error instanceof Error ? error : undefined);
         throw error;
-
       } finally {
         telemetry.endTrace(traceId);
       }
