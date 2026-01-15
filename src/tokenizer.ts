@@ -30,6 +30,10 @@ export interface TokenBudget {
 // Token Counting Implementations
 // ============================================
 
+// ASCII range regex pattern (avoids control character lint error)
+const ASCII_PATTERN = /^[\u0000-\u007F]+$/;
+const NON_ASCII_PATTERN = /[^\u0000-\u007F]/g;
+
 /**
  * Byte-Pair Encoding approximation
  * More accurate than simple character counting
@@ -53,14 +57,17 @@ class BPEApproximation implements TokenCounter {
         this.charsPerToken = 3.5;
         this.messageOverhead = 4; // <|im_start|>{role}\n ... <|im_end|>
         break;
+
       case 'claude':
         this.charsPerToken = 3.8;
         this.messageOverhead = 3;
         break;
+
       case 'gemini':
         this.charsPerToken = 4.0;
         this.messageOverhead = 2;
         break;
+
       default:
         this.charsPerToken = 4.0;
         this.messageOverhead = 4;
@@ -98,7 +105,7 @@ class BPEApproximation implements TokenCounter {
     }
 
     // Adjust for non-ASCII (typically more tokens)
-    const nonAscii = text.match(/[^\x00-\x7F]/g) || [];
+    const nonAscii = text.match(NON_ASCII_PATTERN) || [];
     tokens += nonAscii.length * 0.5;
 
     return Math.ceil(tokens);
@@ -161,7 +168,7 @@ class UnicodeTokenCounter implements TokenCounter {
 
     for (const { segment } of graphemes) {
       // ASCII characters: roughly 4 chars per token
-      if (/^[\x00-\x7F]+$/.test(segment)) {
+      if (ASCII_PATTERN.test(segment)) {
         tokens += segment.length / 4;
       }
       // CJK characters: roughly 1-2 chars per token
@@ -179,11 +186,13 @@ class UnicodeTokenCounter implements TokenCounter {
 
   countMessages(messages: Array<{ role: string; content: string }>): number {
     let total = 0;
+
     for (const msg of messages) {
       total += 4; // message overhead
       total += this.count(msg.role);
       total += this.count(msg.content);
     }
+
     return total + 3; // priming
   }
 
@@ -227,12 +236,15 @@ export function getModelFamily(model: string): ModelFamily {
   if (normalized.includes('gpt-4') || normalized.includes('gpt4')) {
     return 'gpt-4';
   }
+
   if (normalized.includes('gpt-3') || normalized.includes('gpt3')) {
     return 'gpt-3.5';
   }
+
   if (normalized.includes('claude')) {
     return 'claude';
   }
+
   if (normalized.includes('gemini') || normalized.includes('palm')) {
     return 'gemini';
   }
@@ -324,12 +336,16 @@ export function calculateBudget(
 export interface TruncationOptions {
   /** Maximum tokens allowed */
   maxTokens: number;
+
   /** Strategy for truncation */
   strategy: 'end' | 'middle' | 'smart';
+
   /** Text to indicate truncation occurred */
   truncationIndicator?: string;
+
   /** Preserve at least this many tokens at start */
   preserveStart?: number;
+
   /** Preserve at least this many tokens at end */
   preserveEnd?: number;
 }
@@ -355,22 +371,26 @@ export function truncateToTokens(
   let result: string;
 
   switch (options.strategy) {
-    case 'end':
+    case 'end': {
       result = truncateFromEnd(text, availableTokens, counter) + indicator;
       break;
+    }
 
-    case 'middle':
+    case 'middle': {
       const preserveStart = options.preserveStart ?? Math.floor(availableTokens * 0.7);
       const preserveEnd = options.preserveEnd ?? availableTokens - preserveStart;
       result = truncateFromMiddle(text, preserveStart, preserveEnd, indicator, counter);
       break;
+    }
 
-    case 'smart':
+    case 'smart': {
       result = smartTruncate(text, availableTokens, indicator, counter);
       break;
+    }
 
-    default:
+    default: {
       result = truncateFromEnd(text, availableTokens, counter) + indicator;
+    }
   }
 
   return {
@@ -458,14 +478,17 @@ function smartTruncate(
 
   for (const para of paragraphs) {
     const paraTokens = counter.count(para);
+
     if (currentTokens + paraTokens <= maxTokens) {
       result += (result ? '\n\n' : '') + para;
       currentTokens += paraTokens;
     } else {
       // Try to fit partial paragraph by sentences
       const sentences = para.match(/[^.!?]+[.!?]+/g) || [para];
+
       for (const sentence of sentences) {
         const sentTokens = counter.count(sentence);
+
         if (currentTokens + sentTokens <= maxTokens) {
           result += (result ? ' ' : '') + sentence.trim();
           currentTokens += sentTokens;
@@ -473,6 +496,7 @@ function smartTruncate(
           break;
         }
       }
+
       break;
     }
   }
