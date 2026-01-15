@@ -1,0 +1,14 @@
+# Default owner for everything
+* @mpalmer79
+
+# Documentation
+/docs/ @mpalmer79
+
+# CI/CD
+/.github/ @mpalmer79
+
+# Core framework
+/src/ @mpalmer79
+
+# Tests
+/tests/ @mpalmer79
