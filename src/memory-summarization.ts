@@ -20,12 +20,16 @@ import { getTelemetry } from './telemetry';
 export interface SummarizationConfig {
   /** Maximum tokens to keep in active memory */
   maxTokens: number;
+
   /** Tokens to preserve for new messages */
   reserveTokens: number;
+
   /** Minimum messages before summarization triggers */
   minMessagesBeforeSummarization: number;
+
   /** How many recent messages to always keep unsummarized */
   preserveRecentMessages: number;
+
   /** Model to use for summarization (if using LLM-based) */
   summarizationModel?: string;
 }
@@ -33,12 +37,16 @@ export interface SummarizationConfig {
 export interface SummarizationResult {
   /** Messages after summarization */
   messages: Message[];
+
   /** Whether summarization occurred */
   summarized: boolean;
+
   /** Original token count */
   originalTokens: number;
+
   /** Final token count */
   finalTokens: number;
+
   /** Summary that was generated (if any) */
   summary?: string;
 }
@@ -53,6 +61,7 @@ export type SummarizationStrategy =
 export interface MemorySummarizer {
   /** Strategy name */
   name: SummarizationStrategy;
+
   /** Summarize messages to fit within token budget */
   summarize(messages: Message[], config: SummarizationConfig): Promise<SummarizationResult>;
 }
@@ -88,6 +97,7 @@ export function createSlidingWindowSummarizer(
 
   return {
     name: 'sliding_window',
+
     async summarize(messages, config) {
       const counter = getTokenCounter('gpt-4');
       const startTime = Date.now();
@@ -97,6 +107,7 @@ export function createSlidingWindowSummarizer(
 
       // Check if summarization is needed
       const targetTokens = config.maxTokens - config.reserveTokens;
+
       if (originalTokens <= targetTokens) {
         return {
           messages,
@@ -127,7 +138,7 @@ export function createSlidingWindowSummarizer(
       const availableForOlder = targetTokens - systemTokens - recentTokens;
 
       // Keep as many older messages as possible
-      let keptMessages: Message[] = [];
+      const keptMessages: Message[] = [];
       let keptTokens = 0;
       let droppedMessages: Message[] = [];
 
@@ -146,6 +157,7 @@ export function createSlidingWindowSummarizer(
 
       // Generate summary of dropped messages if requested and provider available
       let summaryMessage: Message | undefined;
+
       if (includeSummary && provider && droppedMessages.length > 0) {
         try {
           const summary = await generateSummary(provider, droppedMessages);
@@ -203,13 +215,14 @@ export function createSemanticCompressionSummarizer(provider: Provider): MemoryS
 
   return {
     name: 'semantic_compression',
+
     async summarize(messages, config) {
       const counter = getTokenCounter('gpt-4');
       const startTime = Date.now();
 
       const originalTokens = messages.reduce((sum, m) => sum + counter.count(m.content), 0);
-
       const targetTokens = config.maxTokens - config.reserveTokens;
+
       if (originalTokens <= targetTokens) {
         return {
           messages,
@@ -338,13 +351,14 @@ export function createHierarchicalSummarizer(provider: Provider): MemorySummariz
 
   return {
     name: 'hierarchical',
+
     async summarize(messages, config) {
       const counter = getTokenCounter('gpt-4');
       const startTime = Date.now();
 
       const originalTokens = messages.reduce((sum, m) => sum + counter.count(m.content), 0);
-
       const targetTokens = config.maxTokens - config.reserveTokens;
+
       if (originalTokens <= targetTokens) {
         return {
           messages,
@@ -368,7 +382,7 @@ export function createHierarchicalSummarizer(provider: Provider): MemorySummariz
       const level3Budget = Math.floor(targetTokens * 0.15);
 
       // Level 1: Keep recent messages
-      let level1Messages: Message[] = [];
+      const level1Messages: Message[] = [];
       let level1Tokens = 0;
 
       for (let i = conversationMessages.length - 1; i >= 0; i--) {
@@ -399,6 +413,7 @@ export function createHierarchicalSummarizer(provider: Provider): MemorySummariz
       // Level 3: Update long-term summary if needed
       let level3Summary = summaryLevels.level3;
       const oldMessages = toSummarize.slice(0, -20);
+
       if (oldMessages.length > 10) {
         // Incorporate old messages into long-term summary
         const newLongTermContent = await generateSummary(provider, oldMessages, level3Budget);
@@ -473,8 +488,10 @@ export function createHierarchicalSummarizer(provider: Provider): MemorySummariz
 export interface MessageImportance {
   /** Message ID */
   id: string;
+
   /** Importance score 0-1 */
   score: number;
+
   /** Reason for importance score */
   reason?: string;
 }
@@ -495,13 +512,14 @@ export function createImportanceBasedSummarizer(
 
   return {
     name: 'importance_based',
+
     async summarize(messages, config) {
       const counter = getTokenCounter('gpt-4');
       const startTime = Date.now();
 
       const originalTokens = messages.reduce((sum, m) => sum + counter.count(m.content), 0);
-
       const targetTokens = config.maxTokens - config.reserveTokens;
+
       if (originalTokens <= targetTokens) {
         return {
           messages,
@@ -540,12 +558,13 @@ export function createImportanceBasedSummarizer(
       const availableTokens = targetTokens - systemTokens - recentTokens;
 
       // Select most important messages that fit
-      let selectedMessages: Message[] = [];
+      const selectedMessages: Message[] = [];
       let selectedTokens = 0;
       let droppedCount = 0;
 
       for (const { msg } of sortedCandidates) {
         const msgTokens = counter.count(msg.content);
+
         if (selectedTokens + msgTokens <= availableTokens) {
           selectedMessages.push(msg);
           selectedTokens += msgTokens;
