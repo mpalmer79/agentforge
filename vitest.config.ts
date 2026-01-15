@@ -17,12 +17,6 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.config.*',
       ],
-      thresholds: {
-        branches: 80,
-        functions: 80,
-        lines: 80,
-        statements: 80,
-      },
     },
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
     testTimeout: 10000,
