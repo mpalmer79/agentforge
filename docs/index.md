@@ -63,11 +63,7 @@ features:
   vertical-align: middle;
 }
 
-/* ============================================
-   ENHANCED SEARCH BAR
-   ============================================ */
-
-/* Make search bar wider and more prominent */
+/* Enhanced Search Bar */
 .VPNavBarSearch {
   flex-grow: 1 !important;
   max-width: 450px !important;
@@ -99,7 +95,6 @@ features:
   min-width: auto !important;
 }
 
-/* VitePress local search styling */
 .VPNavBarSearchButton.search {
   width: 100% !important;
   min-width: 300px !important;
@@ -124,11 +119,7 @@ features:
   font-size: 0.95rem !important;
 }
 
-/* ============================================
-   FEATURE CARD BACKGROUNDS
-   ============================================ */
-
-/* Card 1: Type-Safe Tools - /type.png */
+/* Feature Card Backgrounds */
 .VPFeatures .items .item:nth-child(1) .VPFeature {
   background-image: url('/type.png') !important;
   background-size: 100% 100% !important;
@@ -163,7 +154,6 @@ features:
   opacity: 0 !important;
 }
 
-/* Card 2: Streaming Built-In - /streaming.png */
 .VPFeatures .items .item:nth-child(2) .VPFeature {
   background-image: url('/streaming.png') !important;
   background-size: 100% 100% !important;
@@ -198,7 +188,6 @@ features:
   opacity: 0 !important;
 }
 
-/* Card 3: Multi-Provider - /multi-provider.png */
 .VPFeatures .items .item:nth-child(3) .VPFeature {
   background-image: url('/multi-provider.png') !important;
   background-size: 100% 100% !important;
@@ -233,7 +222,6 @@ features:
   opacity: 0 !important;
 }
 
-/* Card 4: Middleware Pipeline - /middleware.png */
 .VPFeatures .items .item:nth-child(4) .VPFeature {
   background-image: url('/middleware.png') !important;
   background-size: 100% 100% !important;
@@ -268,7 +256,6 @@ features:
   opacity: 0 !important;
 }
 
-/* Card 5: React Hooks - /react.png */
 .VPFeatures .items .item:nth-child(5) .VPFeature {
   background-image: url('/react.png') !important;
   background-size: 100% 100% !important;
@@ -303,7 +290,6 @@ features:
   opacity: 0 !important;
 }
 
-/* Card 6: Enterprise Ready - /enterprise.png */
 .VPFeatures .items .item:nth-child(6) .VPFeature {
   background-image: url('/enterprise.png') !important;
   background-size: 100% 100% !important;
@@ -338,17 +324,13 @@ features:
   opacity: 0 !important;
 }
 
-/* ============================================
-   PAGE LAYOUT
-   ============================================ */
-
+/* Page Layout */
 .home-content {
   max-width: 1152px;
   margin: 0 auto;
   padding: 0 24px;
 }
 
-/* Badges Section */
 .badges-section {
   display: flex;
   justify-content: center;
@@ -360,7 +342,6 @@ features:
   height: 24px;
 }
 
-/* Why Section */
 .why-exists {
   margin: 3rem 0;
   padding: 2.5rem;
@@ -410,7 +391,6 @@ features:
   50% { opacity: 0.5; }
 }
 
-/* What This Demonstrates */
 .demonstrates-section {
   margin: 4rem 0;
   padding: 3rem;
@@ -453,7 +433,6 @@ features:
   margin: 0;
 }
 
-/* Code Preview */
 .code-preview {
   margin: 4rem 0;
 }
@@ -594,22 +573,18 @@ features:
 import { onMounted } from 'vue'
 
 onMounted(() => {
-  // Make LinkedIn link open in new tab
   const linkedinLink = document.querySelector('.VPHero .actions a[href*="linkedin"]')
   if (linkedinLink) {
     linkedinLink.setAttribute('target', '_blank')
     linkedinLink.setAttribute('rel', 'noopener noreferrer')
   }
   
-  // Enhanced search bar placeholder
   setTimeout(() => {
-    // For DocSearch (Algolia)
     const searchPlaceholder = document.querySelector('.DocSearch-Button-Placeholder')
     if (searchPlaceholder) {
       searchPlaceholder.textContent = 'Search docs, APIs, examples...'
     }
     
-    // For VitePress local search
     const localSearchBtn = document.querySelector('.VPNavBarSearchButton')
     if (localSearchBtn) {
       const textSpan = localSearchBtn.querySelector('.text')
@@ -623,7 +598,6 @@ onMounted(() => {
 
 <div class="home-content">
 
-<!-- Badges -->
 <div class="badges-section">
   <img src="https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" />
@@ -631,7 +605,6 @@ onMounted(() => {
   <img src="https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white" alt="Node.js 18+" />
 </div>
 
-<!-- Why This Exists -->
 <div class="why-exists">
   <h2>Why This Exists</h2>
   <p>
@@ -646,32 +619,31 @@ onMounted(() => {
   </div>
 </div>
 
-<!-- What This Demonstrates -->
 <div class="demonstrates-section">
   <h2>What This Project Demonstrates</h2>
   <div class="demonstrates-grid">
     <div class="demonstrates-item">
-      <span class="icon">🏗️</span>
+      <span class="icon">&#127959;</span>
       <p>Designing modular, provider-agnostic architecture that scales</p>
     </div>
     <div class="demonstrates-item">
-      <span class="icon">🔒</span>
+      <span class="icon">&#128274;</span>
       <p>Building type-safe APIs with runtime validation using Zod</p>
     </div>
     <div class="demonstrates-item">
-      <span class="icon">⚡</span>
+      <span class="icon">&#9889;</span>
       <p>Implementing streaming systems with async iterators</p>
     </div>
     <div class="demonstrates-item">
-      <span class="icon">🔗</span>
+      <span class="icon">&#128279;</span>
       <p>Designing middleware pipelines for extensibility</p>
     </div>
     <div class="demonstrates-item">
-      <span class="icon">🛡️</span>
+      <span class="icon">&#128737;</span>
       <p>Production patterns: circuit breakers, retry logic, graceful degradation</p>
     </div>
     <div class="demonstrates-item">
-      <span class="icon">📚</span>
+      <span class="icon">&#128218;</span>
       <p>Complete documentation with branding, SEO, and examples</p>
     </div>
   </div>
@@ -680,6 +652,7 @@ onMounted(() => {
 <div class="code-preview">
   <h2>Simple, Powerful API</h2>
   <p>Build an AI agent with tools in under 30 lines of code</p>
+
 ```typescript
 import { Agent, OpenAIProvider, defineTool } from 'agentforge';
 import { z } from 'zod';
@@ -707,7 +680,7 @@ const agent = new Agent({
 // Run it
 const response = await agent.run('What is the weather in Boston?');
 console.log(response.content);
-// -> "The current weather in Boston is 72F and sunny!"
+// The current weather in Boston is 72F and sunny!
 ```
 
 </div>
@@ -724,27 +697,27 @@ console.log(response.content);
   <h2>Why AgentForge?</h2>
   <div class="why-grid">
     <div class="why-item">
-      <h3>🎯 Type Safety First</h3>
+      <h3>Type Safety First</h3>
       <p>Every tool parameter, every response, every error - fully typed. Catch bugs at compile time, not in production.</p>
     </div>
     <div class="why-item">
-      <h3>🏗️ Production Architecture</h3>
+      <h3>Production Architecture</h3>
       <p>Built with patterns from real production systems: middleware pipelines, error boundaries, retry logic, and graceful degradation.</p>
     </div>
     <div class="why-item">
-      <h3>🔄 Framework Agnostic</h3>
+      <h3>Framework Agnostic</h3>
       <p>Works with any frontend or backend. First-class React hooks included, but the core is pure TypeScript.</p>
     </div>
     <div class="why-item">
-      <h3>📦 Zero Lock-in</h3>
+      <h3>Zero Lock-in</h3>
       <p>Switch between OpenAI, Anthropic, or any provider with a single line change. Your tools work everywhere.</p>
     </div>
     <div class="why-item">
-      <h3>🧪 Testable by Design</h3>
+      <h3>Testable by Design</h3>
       <p>Mock providers, test tools in isolation, verify middleware behavior. Testing AI agents should not be hard.</p>
     </div>
     <div class="why-item">
-      <h3>📚 Extensively Documented</h3>
+      <h3>Extensively Documented</h3>
       <p>Comprehensive guides, API reference, and real-world examples. Learn once, build anything.</p>
     </div>
   </div>
