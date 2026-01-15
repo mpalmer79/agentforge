@@ -131,31 +131,48 @@ describe('Agent with Staff-Level Features', () => {
   describe('Circuit Breaker Integration', () => {
     it('should trip circuit breaker after failures', async () => {
       const agent = new Agent({
-        provider: createMockProvider({ failCount: 10 }), // Always fail
+        provider: createMockProvider({ failCount: 100 }), // Always fail
         telemetry,
         circuitBreaker: {
           enabled: true,
           failureThreshold: 3,
-          resetTimeoutMs: 100,
+          resetTimeoutMs: 10000, // Long timeout so it stays open
+        },
+        // Disable retries so each call counts as one failure
+        retry: {
+          maxRetries: 0,
         },
       });
 
-      // First few failures should go through
+      // First few failures should go through and trip the breaker
       for (let i = 0; i < 3; i++) {
-        await expect(agent.run('Test')).rejects.toThrow();
+        await expect(agent.run('Test')).rejects.toThrow(/Mock failure/);
       }
 
       // Circuit should be open now
       const health = agent.getHealth();
       expect(health.circuitBreaker?.state).toBe('open');
 
-      // Subsequent requests should fail fast
+      // Subsequent requests should fail fast with circuit breaker error
       await expect(agent.run('Test')).rejects.toThrow(/Circuit breaker is open/);
     });
 
     it('should recover after reset timeout', async () => {
-      let failCount = 3;
-      const provider = createMockProvider({ failCount });
+      // Create a provider that fails first 2 times, then succeeds
+      let callCount = 0;
+      const provider: Provider = {
+        name: 'recovering-provider',
+        async complete() {
+          callCount++;
+          if (callCount <= 2) {
+            throw new Error(`Mock failure ${callCount}`);
+          }
+          return { id: 'resp', content: 'Success after recovery', finishReason: 'stop' };
+        },
+        async *stream() {
+          yield { id: 'chunk', delta: { content: 'Hi' } };
+        },
+      };
 
       const agent = new Agent({
         provider,
@@ -163,23 +180,30 @@ describe('Agent with Staff-Level Features', () => {
         circuitBreaker: {
           enabled: true,
           failureThreshold: 2,
-          resetTimeoutMs: 50,
+          resetTimeoutMs: 50, // Short timeout for test
+        },
+        retry: {
+          maxRetries: 0, // Disable retries
         },
       });
 
-      // Trip the breaker
-      await expect(agent.run('Test')).rejects.toThrow();
-      await expect(agent.run('Test')).rejects.toThrow();
+      // Trip the breaker with 2 failures
+      await expect(agent.run('Test')).rejects.toThrow(/Mock failure 1/);
+      await expect(agent.run('Test')).rejects.toThrow(/Mock failure 2/);
 
+      // Verify circuit is open
       expect(agent.getHealth().circuitBreaker?.state).toBe('open');
 
-      // Wait for reset timeout
+      // Wait for reset timeout (half-open state)
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Should allow request through (half-open)
-      // Provider now succeeds (failCount exhausted)
+      // Next request should go through (half-open allows one request)
+      // Provider now succeeds (callCount > 2)
       const result = await agent.run('Test');
-      expect(result.content).toBeDefined();
+      expect(result.content).toBe('Success after recovery');
+      
+      // Circuit should be closed again after success
+      expect(agent.getHealth().circuitBreaker?.state).toBe('closed');
     });
   });
 
@@ -369,6 +393,9 @@ describe('Agent with Staff-Level Features', () => {
           enabled: true,
           failureThreshold: 2,
         },
+        retry: {
+          maxRetries: 0,
+        },
       });
 
       // Trip the breaker
@@ -493,7 +520,12 @@ describe('End-to-End Resilience', () => {
       telemetry,
       circuitBreaker: {
         enabled: true,
-        failureThreshold: 5, // High threshold
+        failureThreshold: 5, // High threshold so it doesn't trip
+      },
+      retry: {
+        maxRetries: 3, // Allow retries to eventually succeed
+        initialDelayMs: 10,
+        maxDelayMs: 50,
       },
     });
 
