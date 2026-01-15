@@ -108,37 +108,43 @@ export function useStreamingAgent(config: UseStreamingAgentConfig): UseStreaming
           signal: abortControllerRef.current.signal,
         })) {
           switch (event.type) {
-            case 'content':
+            case 'content': {
               const token = event.data as string;
               fullContent += token;
               setStreamingContent(fullContent);
               onToken?.(token);
               break;
+            }
 
-            case 'tool_call':
+            case 'tool_call': {
               const toolCall = event.data as { name: string; arguments: Record<string, unknown> };
               onToolCall?.(toolCall.name, toolCall.arguments);
               break;
+            }
 
-            case 'tool_result':
+            case 'tool_result': {
               onToolResult?.(event.data as ToolResult);
               break;
+            }
 
-            case 'done':
+            case 'done': {
               const assistantMessage: Message = {
                 id: generateId('msg'),
                 role: 'assistant',
                 content: fullContent,
                 timestamp: Date.now(),
               };
+
               setMessages((prev) => [...prev, assistantMessage]);
               setStreamingContent('');
               onComplete?.(fullContent);
               break;
+            }
           }
         }
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
+
         if (error.name !== 'AbortError' && error.message !== 'Agent execution aborted') {
           setError(error);
           onError?.(error);
@@ -173,6 +179,7 @@ export function useStreamingAgent(config: UseStreamingAgentConfig): UseStreaming
         content: streamingContent + ' [interrupted]',
         timestamp: Date.now(),
       };
+
       setMessages((prev) => [...prev, partialMessage]);
       setStreamingContent('');
     }
