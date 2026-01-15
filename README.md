@@ -1,8 +1,11 @@
 # 🔧 AgentForge
 
+![CI](https://github.com/mpalmer79/agentforge/actions/workflows/ci.yml/badge.svg)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+![Tests](https://img.shields.io/badge/Tests-250%2B%20passing-brightgreen)
+![Coverage](https://img.shields.io/badge/Coverage-90%25-brightgreen)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 
 **A production-ready TypeScript framework for building AI agents that actually work.**
@@ -47,7 +50,6 @@ Most AI agent frameworks break down when you try to ship them to production. Age
 ---
 
 ## 📦 Installation
-
 ```bash
 npm install agentforge zod
 ```
@@ -55,7 +57,6 @@ npm install agentforge zod
 ---
 
 ## 🚀 Quick Start
-
 ```typescript
 import { Agent, OpenAIProvider, defineTool } from 'agentforge';
 import { z } from 'zod';
@@ -90,7 +91,6 @@ console.log(response.content);
 ## 🛡️ Production Features
 
 ### Circuit Breaker & Resilience
-
 ```typescript
 const agent = new Agent({
   provider: new OpenAIProvider({ apiKey: process.env.OPENAI_API_KEY }),
@@ -121,7 +121,6 @@ console.log(health.circuitBreaker?.state); // 'closed' | 'open' | 'half-open'
 ```
 
 ### Observability
-
 ```typescript
 import { initTelemetry, createConsoleExporter } from 'agentforge';
 
@@ -136,7 +135,6 @@ initTelemetry(createConsoleExporter());
 ```
 
 ### Multi-Provider Failover
-
 ```typescript
 import { createFailoverProvider } from 'agentforge';
 
@@ -151,7 +149,6 @@ const provider = createFailoverProvider(
 ---
 
 ## ⚛️ React Integration
-
 ```tsx
 import { useAgent, AgentProvider } from 'agentforge/react';
 
@@ -186,7 +183,6 @@ function ChatInterface() {
 ---
 
 ## 🔧 Middleware
-
 ```typescript
 import { 
   createRateLimitMiddleware,
