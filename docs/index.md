@@ -64,6 +64,67 @@ features:
 }
 
 /* ============================================
+   ENHANCED SEARCH BAR
+   ============================================ */
+
+/* Make search bar wider and more prominent */
+.VPNavBarSearch {
+  flex-grow: 1 !important;
+  max-width: 450px !important;
+  margin: 0 2rem !important;
+}
+
+.VPNavBarSearch .DocSearch-Button {
+  width: 100% !important;
+  min-width: 300px !important;
+  background: var(--vp-c-bg-soft) !important;
+  border: 1px solid var(--vp-c-divider) !important;
+  border-radius: 12px !important;
+  padding: 0 16px !important;
+  height: 44px !important;
+  transition: all 0.3s ease !important;
+}
+
+.VPNavBarSearch .DocSearch-Button:hover {
+  border-color: var(--vp-c-brand-1) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+}
+
+.VPNavBarSearch .DocSearch-Button-Placeholder {
+  font-size: 0.95rem !important;
+  color: var(--vp-c-text-2) !important;
+}
+
+.VPNavBarSearch .DocSearch-Button-Keys {
+  min-width: auto !important;
+}
+
+/* VitePress local search styling */
+.VPNavBarSearchButton.search {
+  width: 100% !important;
+  min-width: 300px !important;
+  max-width: 450px !important;
+  background: var(--vp-c-bg-soft) !important;
+  border: 1px solid var(--vp-c-divider) !important;
+  border-radius: 12px !important;
+  padding: 0 16px !important;
+  height: 44px !important;
+  transition: all 0.3s ease !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+}
+
+.VPNavBarSearchButton.search:hover {
+  border-color: var(--vp-c-brand-1) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+}
+
+.VPNavBarSearchButton.search .text {
+  color: var(--vp-c-text-2) !important;
+  font-size: 0.95rem !important;
+}
+
+/* ============================================
    FEATURE CARD BACKGROUNDS
    ============================================ */
 
@@ -539,6 +600,24 @@ onMounted(() => {
     linkedinLink.setAttribute('target', '_blank')
     linkedinLink.setAttribute('rel', 'noopener noreferrer')
   }
+  
+  // Enhanced search bar placeholder
+  setTimeout(() => {
+    // For DocSearch (Algolia)
+    const searchPlaceholder = document.querySelector('.DocSearch-Button-Placeholder')
+    if (searchPlaceholder) {
+      searchPlaceholder.textContent = 'Search docs, APIs, examples...'
+    }
+    
+    // For VitePress local search
+    const localSearchBtn = document.querySelector('.VPNavBarSearchButton')
+    if (localSearchBtn) {
+      const textSpan = localSearchBtn.querySelector('.text')
+      if (textSpan) {
+        textSpan.textContent = 'Search docs, APIs, examples...'
+      }
+    }
+  }, 100)
 })
 </script>
 
