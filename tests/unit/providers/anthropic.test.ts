@@ -16,7 +16,7 @@ describe('AnthropicProvider', () => {
     });
 
     it('should throw without API key', () => {
-      expect(() => new AnthropicProvider({ apiKey: '' })).toThrow(/API key is required/);
+      expect(() => new AnthropicProvider({ apiKey: '' })).toThrow(/Authentication failed/);
     });
 
     it('should use default model', () => {
