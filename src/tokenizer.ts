@@ -27,12 +27,37 @@ export interface TokenBudget {
 }
 
 // ============================================
-// Token Counting Implementations
+// Helper Functions
 // ============================================
 
-// ASCII range regex pattern (avoids control character lint error)
-const ASCII_PATTERN = /^[\u0000-\u007F]+$/;
-const NON_ASCII_PATTERN = /[^\u0000-\u007F]/g;
+/**
+ * Check if a string contains only ASCII characters (code points 0-127)
+ */
+function isAsciiOnly(str: string): boolean {
+  for (let i = 0; i < str.length; i++) {
+    if (str.charCodeAt(i) > 127) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Count non-ASCII characters in a string
+ */
+function countNonAscii(str: string): number {
+  let count = 0;
+  for (let i = 0; i < str.length; i++) {
+    if (str.charCodeAt(i) > 127) {
+      count++;
+    }
+  }
+  return count;
+}
+
+// ============================================
+// Token Counting Implementations
+// ============================================
 
 /**
  * Byte-Pair Encoding approximation
@@ -105,8 +130,8 @@ class BPEApproximation implements TokenCounter {
     }
 
     // Adjust for non-ASCII (typically more tokens)
-    const nonAscii = text.match(NON_ASCII_PATTERN) || [];
-    tokens += nonAscii.length * 0.5;
+    const nonAsciiCount = countNonAscii(text);
+    tokens += nonAsciiCount * 0.5;
 
     return Math.ceil(tokens);
   }
@@ -168,7 +193,7 @@ class UnicodeTokenCounter implements TokenCounter {
 
     for (const { segment } of graphemes) {
       // ASCII characters: roughly 4 chars per token
-      if (ASCII_PATTERN.test(segment)) {
+      if (isAsciiOnly(segment)) {
         tokens += segment.length / 4;
       }
       // CJK characters: roughly 1-2 chars per token
