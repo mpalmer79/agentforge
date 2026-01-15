@@ -21,7 +21,6 @@ import { OpenAIProvider } from 'agentforge';
 const provider = new OpenAIProvider({
   apiKey: process.env.OPENAI_API_KEY,
   model: 'gpt-4-turbo-preview',
-  // Optional settings
   temperature: 0.7,
   maxTokens: 4096,
 });
