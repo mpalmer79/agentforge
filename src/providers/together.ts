@@ -29,6 +29,7 @@ interface TogetherRequest {
   repetition_penalty?: number;
   stop?: string[];
   stream?: boolean;
+  response_format?: { type: 'json_object' };
   tools?: Array<{
     type: 'function';
     function: {
@@ -239,6 +240,10 @@ export class TogetherProvider extends BaseProvider {
 
     if (this.repetitionPenalty !== undefined) {
       body.repetition_penalty = this.repetitionPenalty;
+    }
+
+    if (this.jsonMode) {
+      body.response_format = { type: 'json_object' };
     }
 
     return body;
