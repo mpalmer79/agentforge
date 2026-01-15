@@ -22,16 +22,22 @@ hero:
 features:
   - title: Type-Safe Tools
     details: Define tools with Zod schemas for full TypeScript inference. Parameters are validated at runtime and compile time.
+    link: /guide/tools
   - title: Streaming Built-In
     details: Real-time token streaming with async iterators. Build responsive UIs that show content as it generates.
+    link: /guide/streaming
   - title: Multi-Provider
     details: Seamlessly switch between OpenAI, Anthropic, or build custom providers. Same API, any LLM.
+    link: /guide/providers
   - title: Middleware Pipeline
     details: Extensible request/response pipeline for logging, caching, rate limiting, and custom processing.
+    link: /guide/middleware
   - title: React Hooks
     details: First-class React integration with useAgent, useChat, and useStreamingAgent hooks.
+    link: /guide/react-integration
   - title: Enterprise Ready
     details: Comprehensive error handling, Result types, branded types, and production-grade patterns.
+    link: /guide/error-handling
 ---
 
 <style>
@@ -41,12 +47,10 @@ features:
   border-color: #0A66C2 !important;
   color: white !important;
 }
-
 .VPHero .actions .VPButton[href*="linkedin"]:hover {
   background: #004182 !important;
   border-color: #004182 !important;
 }
-
 .VPHero .actions .VPButton[href*="linkedin"]::before {
   content: '';
   display: inline-block;
@@ -72,7 +76,6 @@ features:
   position: relative;
   overflow: hidden;
 }
-
 .VPFeatures .items .item:nth-child(1) .VPFeature::before {
   content: '';
   position: absolute;
@@ -84,7 +87,6 @@ features:
   z-index: 0;
   pointer-events: none;
 }
-
 .VPFeatures .items .item:nth-child(1) .VPFeature .title,
 .VPFeatures .items .item:nth-child(1) .VPFeature .details {
   position: relative;
@@ -92,7 +94,6 @@ features:
   color: white !important;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
-
 .VPFeatures .items .item:nth-child(1) .VPFeature .icon,
 .VPFeatures .items .item:nth-child(1) .VPFeature .VPImage,
 .VPFeatures .items .item:nth-child(1) .VPFeature .box > .icon {
@@ -110,7 +111,6 @@ features:
   position: relative;
   overflow: hidden;
 }
-
 .VPFeatures .items .item:nth-child(2) .VPFeature::before {
   content: '';
   position: absolute;
@@ -122,7 +122,6 @@ features:
   z-index: 0;
   pointer-events: none;
 }
-
 .VPFeatures .items .item:nth-child(2) .VPFeature .title,
 .VPFeatures .items .item:nth-child(2) .VPFeature .details {
   position: relative;
@@ -130,7 +129,6 @@ features:
   color: white !important;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
-
 .VPFeatures .items .item:nth-child(2) .VPFeature .icon,
 .VPFeatures .items .item:nth-child(2) .VPFeature .VPImage,
 .VPFeatures .items .item:nth-child(2) .VPFeature .box > .icon {
@@ -148,7 +146,6 @@ features:
   position: relative;
   overflow: hidden;
 }
-
 .VPFeatures .items .item:nth-child(3) .VPFeature::before {
   content: '';
   position: absolute;
@@ -160,7 +157,6 @@ features:
   z-index: 0;
   pointer-events: none;
 }
-
 .VPFeatures .items .item:nth-child(3) .VPFeature .title,
 .VPFeatures .items .item:nth-child(3) .VPFeature .details {
   position: relative;
@@ -168,7 +164,6 @@ features:
   color: white !important;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
-
 .VPFeatures .items .item:nth-child(3) .VPFeature .icon,
 .VPFeatures .items .item:nth-child(3) .VPFeature .VPImage,
 .VPFeatures .items .item:nth-child(3) .VPFeature .box > .icon {
@@ -186,7 +181,6 @@ features:
   position: relative;
   overflow: hidden;
 }
-
 .VPFeatures .items .item:nth-child(4) .VPFeature::before {
   content: '';
   position: absolute;
@@ -198,7 +192,6 @@ features:
   z-index: 0;
   pointer-events: none;
 }
-
 .VPFeatures .items .item:nth-child(4) .VPFeature .title,
 .VPFeatures .items .item:nth-child(4) .VPFeature .details {
   position: relative;
@@ -206,7 +199,6 @@ features:
   color: white !important;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
-
 .VPFeatures .items .item:nth-child(4) .VPFeature .icon,
 .VPFeatures .items .item:nth-child(4) .VPFeature .VPImage,
 .VPFeatures .items .item:nth-child(4) .VPFeature .box > .icon {
@@ -224,7 +216,6 @@ features:
   position: relative;
   overflow: hidden;
 }
-
 .VPFeatures .items .item:nth-child(5) .VPFeature::before {
   content: '';
   position: absolute;
@@ -236,7 +227,6 @@ features:
   z-index: 0;
   pointer-events: none;
 }
-
 .VPFeatures .items .item:nth-child(5) .VPFeature .title,
 .VPFeatures .items .item:nth-child(5) .VPFeature .details {
   position: relative;
@@ -244,7 +234,6 @@ features:
   color: white !important;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
-
 .VPFeatures .items .item:nth-child(5) .VPFeature .icon,
 .VPFeatures .items .item:nth-child(5) .VPFeature .VPImage,
 .VPFeatures .items .item:nth-child(5) .VPFeature .box > .icon {
@@ -262,7 +251,6 @@ features:
   position: relative;
   overflow: hidden;
 }
-
 .VPFeatures .items .item:nth-child(6) .VPFeature::before {
   content: '';
   position: absolute;
@@ -274,7 +262,6 @@ features:
   z-index: 0;
   pointer-events: none;
 }
-
 .VPFeatures .items .item:nth-child(6) .VPFeature .title,
 .VPFeatures .items .item:nth-child(6) .VPFeature .details {
   position: relative;
@@ -282,7 +269,6 @@ features:
   color: white !important;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
-
 .VPFeatures .items .item:nth-child(6) .VPFeature .icon,
 .VPFeatures .items .item:nth-child(6) .VPFeature .VPImage,
 .VPFeatures .items .item:nth-child(6) .VPFeature .box > .icon {
@@ -309,7 +295,6 @@ features:
   flex-wrap: wrap;
   margin: 1.5rem 0 2rem 0;
 }
-
 .badges-section img {
   height: 24px;
 }
@@ -323,7 +308,6 @@ features:
   border: 1px solid var(--vp-c-divider);
   text-align: center;
 }
-
 .why-exists h2 {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.75rem;
@@ -331,7 +315,6 @@ features:
   margin-bottom: 1.25rem;
   color: var(--vp-c-text-1);
 }
-
 .why-exists p {
   color: var(--vp-c-text-2);
   font-size: 1.1rem;
@@ -339,12 +322,10 @@ features:
   max-width: 800px;
   margin: 0 auto 1rem auto;
 }
-
 .why-exists .highlight {
   color: var(--vp-c-brand-1);
   font-weight: 500;
 }
-
 .project-status {
   display: inline-flex;
   align-items: center;
@@ -356,7 +337,6 @@ features:
   font-size: 0.9rem;
   color: var(--vp-c-text-2);
 }
-
 .project-status .dot {
   width: 8px;
   height: 8px;
@@ -364,7 +344,6 @@ features:
   border-radius: 50%;
   animation: pulse 2s infinite;
 }
-
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
@@ -378,7 +357,6 @@ features:
   border-radius: 16px;
   border: 1px solid var(--vp-c-divider);
 }
-
 .demonstrates-section h2 {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.75rem;
@@ -390,13 +368,11 @@ features:
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-
 .demonstrates-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.25rem;
 }
-
 .demonstrates-item {
   display: flex;
   align-items: flex-start;
@@ -406,12 +382,10 @@ features:
   border-radius: 10px;
   border: 1px solid var(--vp-c-divider);
 }
-
 .demonstrates-item .icon {
   font-size: 1.25rem;
   flex-shrink: 0;
 }
-
 .demonstrates-item p {
   color: var(--vp-c-text-2);
   line-height: 1.6;
@@ -422,7 +396,6 @@ features:
 .code-preview {
   margin: 4rem 0;
 }
-
 .code-preview h2 {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.75rem;
@@ -434,7 +407,6 @@ features:
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-
 .code-preview p {
   text-align: center;
   color: var(--vp-c-text-2);
@@ -446,7 +418,6 @@ features:
   margin: 4rem 0;
   text-align: center;
 }
-
 .install-section h2 {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.5rem;
@@ -454,7 +425,6 @@ features:
   margin-bottom: 1.5rem;
   color: var(--vp-c-text-1);
 }
-
 .install-command {
   display: inline-flex;
   align-items: center;
@@ -467,7 +437,6 @@ features:
   font-size: 1rem;
   color: var(--vp-c-text-1);
 }
-
 .install-command code {
   color: var(--vp-c-brand-1);
 }
@@ -478,7 +447,6 @@ features:
   border-top: 1px solid var(--vp-c-divider);
   border-bottom: 1px solid var(--vp-c-divider);
 }
-
 .why-section h2 {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 2rem;
@@ -486,17 +454,14 @@ features:
   text-align: center;
   margin-bottom: 3rem;
 }
-
 .why-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
 }
-
 .why-item {
   padding: 1.5rem;
 }
-
 .why-item h3 {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.25rem;
@@ -504,7 +469,6 @@ features:
   margin-bottom: 0.75rem;
   color: var(--vp-c-brand-1);
 }
-
 .why-item p {
   color: var(--vp-c-text-2);
   line-height: 1.7;
@@ -514,7 +478,6 @@ features:
   margin: 6rem 0;
   text-align: center;
 }
-
 .cta-section h2 {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 2.5rem;
@@ -525,20 +488,17 @@ features:
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-
 .cta-section p {
   color: var(--vp-c-text-2);
   font-size: 1.25rem;
   margin-bottom: 2rem;
 }
-
 .cta-buttons {
   display: flex;
   justify-content: center;
   gap: 1rem;
   flex-wrap: wrap;
 }
-
 .cta-button {
   display: inline-flex;
   align-items: center;
@@ -550,24 +510,20 @@ features:
   text-decoration: none;
   transition: all 0.3s ease;
 }
-
 .cta-button.primary {
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
   color: white;
   box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
 }
-
 .cta-button.primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
 }
-
 .cta-button.secondary {
   background: transparent;
   color: var(--vp-c-brand-1);
   border: 1px solid var(--vp-c-brand-1);
 }
-
 .cta-button.secondary:hover {
   background: var(--vp-c-brand-soft);
 }
@@ -598,54 +554,53 @@ onMounted(() => {
 
 <!-- Why This Exists -->
 <div class="why-exists">
-<h2>Why This Exists</h2>
-<p>
-AgentForge was built to solve a real problem: <span class="highlight">most AI agent frameworks break down when you try to ship them to production</span>.
-</p>
-<p>
-This project demonstrates how to design a type-safe, provider-agnostic, streaming-first agent system using modern TypeScript, clean architecture, and production-grade patterns.
-</p>
-<div class="project-status">
-  <span class="dot"></span>
-  Active development · Designed with production patterns · Open source
-</div>
+  <h2>Why This Exists</h2>
+  <p>
+    AgentForge was built to solve a real problem: <span class="highlight">most AI agent frameworks break down when you try to ship them to production</span>.
+  </p>
+  <p>
+    This project demonstrates how to design a type-safe, provider-agnostic, streaming-first agent system using modern TypeScript, clean architecture, and production-grade patterns.
+  </p>
+  <div class="project-status">
+    <span class="dot"></span>
+    Active development · Designed with production patterns · Open source
+  </div>
 </div>
 
 <!-- What This Demonstrates -->
 <div class="demonstrates-section">
-<h2>What This Project Demonstrates</h2>
-<div class="demonstrates-grid">
-  <div class="demonstrates-item">
-    <span class="icon">🏗️</span>
-    <p>Designing modular, provider-agnostic architecture that scales</p>
+  <h2>What This Project Demonstrates</h2>
+  <div class="demonstrates-grid">
+    <div class="demonstrates-item">
+      <span class="icon">🏗️</span>
+      <p>Designing modular, provider-agnostic architecture that scales</p>
+    </div>
+    <div class="demonstrates-item">
+      <span class="icon">🔒</span>
+      <p>Building type-safe APIs with runtime validation using Zod</p>
+    </div>
+    <div class="demonstrates-item">
+      <span class="icon">⚡</span>
+      <p>Implementing streaming systems with async iterators</p>
+    </div>
+    <div class="demonstrates-item">
+      <span class="icon">🔗</span>
+      <p>Designing middleware pipelines for extensibility</p>
+    </div>
+    <div class="demonstrates-item">
+      <span class="icon">🛡️</span>
+      <p>Production patterns: circuit breakers, retry logic, graceful degradation</p>
+    </div>
+    <div class="demonstrates-item">
+      <span class="icon">📚</span>
+      <p>Complete documentation with branding, SEO, and examples</p>
+    </div>
   </div>
-  <div class="demonstrates-item">
-    <span class="icon">🔒</span>
-    <p>Building type-safe APIs with runtime validation using Zod</p>
-  </div>
-  <div class="demonstrates-item">
-    <span class="icon">⚡</span>
-    <p>Implementing streaming systems with async iterators</p>
-  </div>
-  <div class="demonstrates-item">
-    <span class="icon">🔗</span>
-    <p>Designing middleware pipelines for extensibility</p>
-  </div>
-  <div class="demonstrates-item">
-    <span class="icon">🛡️</span>
-    <p>Production patterns: circuit breakers, retry logic, graceful degradation</p>
-  </div>
-  <div class="demonstrates-item">
-    <span class="icon">📚</span>
-    <p>Complete documentation with branding, SEO, and examples</p>
-  </div>
-</div>
 </div>
 
 <div class="code-preview">
-<h2>Simple, Powerful API</h2>
-<p>Build an AI agent with tools in under 30 lines of code</p>
-
+  <h2>Simple, Powerful API</h2>
+  <p>Build an AI agent with tools in under 30 lines of code</p>
 ```typescript
 import { Agent, OpenAIProvider, defineTool } from 'agentforge';
 import { z } from 'zod';
@@ -679,50 +634,50 @@ console.log(response.content);
 </div>
 
 <div class="install-section">
-<h2>Quick Install</h2>
-<div class="install-command">
-  <span>$</span>
-  <code>npm install agentforge zod</code>
-</div>
+  <h2>Quick Install</h2>
+  <div class="install-command">
+    <span>$</span>
+    <code>npm install agentforge zod</code>
+  </div>
 </div>
 
 <div class="why-section">
-<h2>Why AgentForge?</h2>
-<div class="why-grid">
-<div class="why-item">
-<h3>🎯 Type Safety First</h3>
-<p>Every tool parameter, every response, every error — fully typed. Catch bugs at compile time, not in production.</p>
-</div>
-<div class="why-item">
-<h3>🏗️ Production Architecture</h3>
-<p>Built with patterns from real production systems: middleware pipelines, error boundaries, retry logic, and graceful degradation.</p>
-</div>
-<div class="why-item">
-<h3>🔄 Framework Agnostic</h3>
-<p>Works with any frontend or backend. First-class React hooks included, but the core is pure TypeScript.</p>
-</div>
-<div class="why-item">
-<h3>📦 Zero Lock-in</h3>
-<p>Switch between OpenAI, Anthropic, or any provider with a single line change. Your tools work everywhere.</p>
-</div>
-<div class="why-item">
-<h3>🧪 Testable by Design</h3>
-<p>Mock providers, test tools in isolation, verify middleware behavior. Testing AI agents shouldn't be hard.</p>
-</div>
-<div class="why-item">
-<h3>📚 Extensively Documented</h3>
-<p>Comprehensive guides, API reference, and real-world examples. Learn once, build anything.</p>
-</div>
-</div>
+  <h2>Why AgentForge?</h2>
+  <div class="why-grid">
+    <div class="why-item">
+      <h3>🎯 Type Safety First</h3>
+      <p>Every tool parameter, every response, every error — fully typed. Catch bugs at compile time, not in production.</p>
+    </div>
+    <div class="why-item">
+      <h3>🏗️ Production Architecture</h3>
+      <p>Built with patterns from real production systems: middleware pipelines, error boundaries, retry logic, and graceful degradation.</p>
+    </div>
+    <div class="why-item">
+      <h3>🔄 Framework Agnostic</h3>
+      <p>Works with any frontend or backend. First-class React hooks included, but the core is pure TypeScript.</p>
+    </div>
+    <div class="why-item">
+      <h3>📦 Zero Lock-in</h3>
+      <p>Switch between OpenAI, Anthropic, or any provider with a single line change. Your tools work everywhere.</p>
+    </div>
+    <div class="why-item">
+      <h3>🧪 Testable by Design</h3>
+      <p>Mock providers, test tools in isolation, verify middleware behavior. Testing AI agents shouldn't be hard.</p>
+    </div>
+    <div class="why-item">
+      <h3>📚 Extensively Documented</h3>
+      <p>Comprehensive guides, API reference, and real-world examples. Learn once, build anything.</p>
+    </div>
+  </div>
 </div>
 
 <div class="cta-section">
-<h2>Ready to Build?</h2>
-<p>Start building production-ready AI agents in minutes.</p>
-<div class="cta-buttons">
-<a href="/agentforge/guide/getting-started" class="cta-button primary">Get Started →</a>
-<a href="https://github.com/mpalmer79/agentforge" class="cta-button secondary">View Source</a>
-</div>
+  <h2>Ready to Build?</h2>
+  <p>Start building production-ready AI agents in minutes.</p>
+  <div class="cta-buttons">
+    <a href="/agentforge/guide/getting-started" class="cta-button primary">Get Started →</a>
+    <a href="https://github.com/mpalmer79/agentforge" class="cta-button secondary">View Source</a>
+  </div>
 </div>
 
 </div>
